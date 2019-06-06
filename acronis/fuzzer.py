@@ -34,7 +34,7 @@ def parsing(parsed_page, page):
         pass
 
 os.system('node parser.js')
-with open('parsed.json') as json_file:
+with open('parsed.json', 'r') as json_file:
     parsed_data = json.load(json_file)
 data = {}
 parsing(data, parsed_data)
