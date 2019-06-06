@@ -1,0 +1,232 @@
+{
+  "types": [
+    {
+      "comic": {
+        "name": "comic",
+        "displayName": "comic",
+        "typePropertyKind": "JSON",
+        "schemaPath": "schemas/comic-schema.json",
+        "type": [
+          "{\r\n  \"required\" : true ,\r\n  \"$schema\" : \"http://json-schema.org/draft-03/schema\" ,\r\n  \"type\" : \"object\" ,\r\n  \"properties\" : {\r\n    \"month\" : {\r\n      \"type\" : \"string\" ,\r\n      \"required\" : false\r\n    } ,\r\n    \"num\" : {\r\n      \"type\" : \"number\" ,\r\n      \"required\" : false\r\n    } ,\r\n    \"link\" : {\r\n      \"type\" : \"string\" ,\r\n      \"required\" : false\r\n    } ,\r\n    \"year\" : {\r\n      \"type\" : \"string\" ,\r\n      \"required\" : false\r\n    } ,\r\n    \"news\" : {\r\n      \"type\" : \"string\" ,\r\n      \"required\" : false\r\n    } ,\r\n    \"safe_title\" : {\r\n      \"type\" : \"string\" ,\r\n      \"required\" : false\r\n    } ,\r\n    \"transcript\" : {\r\n      \"type\" : \"string\" ,\r\n      \"required\" : false\r\n    } ,\r\n    \"alt\" : {\r\n      \"type\" : \"string\" ,\r\n      \"required\" : false\r\n    } ,\r\n    \"img\" : {\r\n      \"type\" : \"string\" ,\r\n      \"required\" : false\r\n    } ,\r\n    \"title\" : {\r\n      \"type\" : \"string\" ,\r\n      \"required\" : false\r\n    } ,\r\n    \"day\" : {\r\n      \"type\" : \"string\" ,\r\n      \"required\" : false\r\n    }\r\n  }\r\n}"
+        ],
+        "__METADATA__": {
+          "primitiveValuesMeta": {
+            "displayName": {
+              "calculated": true
+            }
+          }
+        }
+      }
+    }
+  ],
+  "title": "XKCD",
+  "baseUri": "http://xkcd.com",
+  "protocols": [
+    "HTTP"
+  ],
+  "resources": [
+    {
+      "methods": [
+        {
+          "responses": {
+            "200": {
+              "code": "200",
+              "body": {
+                "application/json": {
+                  "name": "application/json",
+                  "displayName": "application/json",
+                  "typePropertyKind": "TYPE_EXPRESSION",
+                  "schema": [
+                    "comic"
+                  ],
+                  "example": {
+                    "month": "4",
+                    "num": 1362,
+                    "link": "",
+                    "year": "2014",
+                    "news": "",
+                    "safe_title": "Morse Code",
+                    "transcript": "",
+                    "alt": "Oh, because Facebook has worked out SO WELL for everyone.",
+                    "img": "http://imgs.xkcd.com/comics/morse_code.png",
+                    "title": "Morse Code",
+                    "day": "30"
+                  },
+                  "__METADATA__": {
+                    "primitiveValuesMeta": {
+                      "displayName": {
+                        "calculated": true
+                      }
+                    }
+                  },
+                  "structuredExample": {
+                    "value": "{\r\n  \"month\" : \"4\" ,\r\n  \"num\" : 1362 ,\r\n  \"link\" : \"\" ,\r\n  \"year\" : \"2014\" ,\r\n  \"news\" : \"\" ,\r\n  \"safe_title\" : \"Morse Code\" ,\r\n  \"transcript\" : \"\" ,\r\n  \"alt\" : \"Oh, because Facebook has worked out SO WELL for everyone.\" ,\r\n  \"img\" : \"http://imgs.xkcd.com/comics/morse_code.png\" ,\r\n  \"title\" : \"Morse Code\" ,\r\n  \"day\" : \"30\"\r\n}",
+                    "strict": true,
+                    "name": null,
+                    "structuredValue": {
+                      "month": "4",
+                      "num": 1362,
+                      "link": "",
+                      "year": "2014",
+                      "news": "",
+                      "safe_title": "Morse Code",
+                      "transcript": "",
+                      "alt": "Oh, because Facebook has worked out SO WELL for everyone.",
+                      "img": "http://imgs.xkcd.com/comics/morse_code.png",
+                      "title": "Morse Code",
+                      "day": "30"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "protocols": [
+            "HTTP"
+          ],
+          "description": "Fetch comics and metadata  by comic id.\n",
+          "method": "get",
+          "__METADATA__": {
+            "primitiveValuesMeta": {
+              "protocols": {
+                "calculated": true
+              }
+            }
+          }
+        }
+      ],
+      "uriParameters": {
+        "comicId": {
+          "name": "comicId",
+          "displayName": "comicId",
+          "typePropertyKind": "TYPE_EXPRESSION",
+          "type": [
+            "number"
+          ],
+          "required": true,
+          "__METADATA__": {
+            "primitiveValuesMeta": {
+              "displayName": {
+                "calculated": true
+              },
+              "required": {
+                "insertedAsDefault": true
+              }
+            }
+          }
+        }
+      },
+      "relativeUri": "/{comicId}/info.0.json",
+      "displayName": "/{comicId}/info.0.json",
+      "__METADATA__": {
+        "primitiveValuesMeta": {
+          "displayName": {
+            "calculated": true
+          }
+        }
+      },
+      "relativeUriPathSegments": [
+        "{comicId}",
+        "info.0.json"
+      ],
+      "absoluteUri": "http://xkcd.com/{comicId}/info.0.json"
+    },
+    {
+      "methods": [
+        {
+          "responses": {
+            "200": {
+              "code": "200",
+              "body": {
+                "application/json": {
+                  "name": "application/json",
+                  "displayName": "application/json",
+                  "typePropertyKind": "TYPE_EXPRESSION",
+                  "schema": [
+                    "comic"
+                  ],
+                  "example": {
+                    "month": "4",
+                    "num": 1362,
+                    "link": "",
+                    "year": "2014",
+                    "news": "",
+                    "safe_title": "Morse Code",
+                    "transcript": "",
+                    "alt": "Oh, because Facebook has worked out SO WELL for everyone.",
+                    "img": "http://imgs.xkcd.com/comics/morse_code.png",
+                    "title": "Morse Code",
+                    "day": "30"
+                  },
+                  "__METADATA__": {
+                    "primitiveValuesMeta": {
+                      "displayName": {
+                        "calculated": true
+                      }
+                    }
+                  },
+                  "structuredExample": {
+                    "value": "{\r\n  \"month\" : \"4\" ,\r\n  \"num\" : 1362 ,\r\n  \"link\" : \"\" ,\r\n  \"year\" : \"2014\" ,\r\n  \"news\" : \"\" ,\r\n  \"safe_title\" : \"Morse Code\" ,\r\n  \"transcript\" : \"\" ,\r\n  \"alt\" : \"Oh, because Facebook has worked out SO WELL for everyone.\" ,\r\n  \"img\" : \"http://imgs.xkcd.com/comics/morse_code.png\" ,\r\n  \"title\" : \"Morse Code\" ,\r\n  \"day\" : \"30\"\r\n}",
+                    "strict": true,
+                    "name": null,
+                    "structuredValue": {
+                      "month": "4",
+                      "num": 1362,
+                      "link": "",
+                      "year": "2014",
+                      "news": "",
+                      "safe_title": "Morse Code",
+                      "transcript": "",
+                      "alt": "Oh, because Facebook has worked out SO WELL for everyone.",
+                      "img": "http://imgs.xkcd.com/comics/morse_code.png",
+                      "title": "Morse Code",
+                      "day": "30"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "protocols": [
+            "HTTP"
+          ],
+          "description": "Fetch current comic and metadata.\n",
+          "method": "get",
+          "__METADATA__": {
+            "primitiveValuesMeta": {
+              "protocols": {
+                "calculated": true
+              }
+            }
+          }
+        }
+      ],
+      "relativeUri": "/info.0.json",
+      "displayName": "/info.0.json",
+      "__METADATA__": {
+        "primitiveValuesMeta": {
+          "displayName": {
+            "calculated": true
+          }
+        }
+      },
+      "relativeUriPathSegments": [
+        "info.0.json"
+      ],
+      "absoluteUri": "http://xkcd.com/info.0.json"
+    }
+  ],
+  "documentation": [
+    {
+      "title": "Headline",
+      "content": "A webcomic of romance, sarcasm, math, and language."
+    }
+  ],
+  "__METADATA__": {
+    "primitiveValuesMeta": {
+      "protocols": {
+        "calculated": true
+      }
+    }
+  }
+}

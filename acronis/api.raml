@@ -1,0 +1,1467 @@
+#%RAML 1.0
+title: Task Manager REST
+version: v2
+protocols: [ HTTP, HTTPS ]
+baseUri: /api/task_manager/v2
+mediaType: application/json
+securedBy: [oauth2]
+
+securitySchemes:
+  oauth2:
+    type: OAuth 2.0
+    describedBy:
+      headers:
+        Authorization:
+          description: Usual OAuth 2 access token
+          type: string
+          pattern: Bearer [0-9a-zA-Z\-\._~+/]*=
+
+traits:
+  ScopedByContextTenant:
+    headers:
+      X-Apigw-Tenant-Id: string
+
+annotationTypes:
+  ExtJS:
+
+  AllowedTo:
+    type: array
+    items:
+      type: string
+      enum: ["task_manager::admin", "task_manager::issuer", "task_manager::consumer", "task_manager::viewer", "task_manager::importer"]
+
+types:
+  uuid:
+    type: string
+    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+
+  string64:
+    type: string
+    description: String (max length = 64 chars)
+
+  string256:
+    type: string
+    description: String (max length = 256 chars)
+
+  domainError:
+    type: object
+    description: Domain error
+    properties: 
+      domain:
+        type: string
+      code:
+        type: string
+
+  collection:
+    type: object
+    description: A collection of entities
+    properties: 
+      items:
+        type: object[]
+
+  pageToken:
+    type: string
+    description: base64-encoded string
+
+  pagedCollection:
+    type: [collection]
+    description: A single page of a larger entity collection
+    properties: 
+      cursors?:
+        type: object
+        properties: 
+          after?:
+            type: pageToken
+            description: page token pointing to the end of the page
+          before?:
+            type: pageToken
+            description: page token pointing to the beginning of the page
+
+  nodeHealth:
+    type: object
+
+  queueStats:
+    type: object
+    description: Queue statistics
+    properties: 
+      size:
+        type: integer
+        description: Enqueued task count
+
+  progress:
+    type: object
+    description: Progress value
+    properties: 
+      total:
+        type: integer
+      current?:
+        type: integer
+
+  actor:
+    type: object
+    description: Actor identity
+    properties: 
+      id:
+        type: string64
+      clusterId?:
+        type: string64
+
+  tenant:
+    type: object
+    description: Tenant identity
+    properties: 
+      id:
+        type: string64
+      name?:
+        type: string
+      locator?:
+        type: string
+        description: Hierarchical tenant identifier in the form of /root-id/unit-id/sub-unit-id/tenant-id/
+
+  executionState:
+    type: string
+    enum: ["enqueued", "assigned", "started", "paused", "completed"]
+    description: Execution state
+
+  blob:
+    type: string
+    description: Arbitrary data
+
+  resultCode:
+    type: string
+    enum: ["ok", "error", "warning", "cancelled", "abandoned", "timedout"]
+
+  executionResult:
+    type: object
+    description: Execution result
+    properties: 
+      code:
+        type: resultCode
+      error?:
+        type: domainError
+      payload?:
+        type: blob
+
+  time:
+    type: string
+    description: Time in RFC3339 format
+
+  duration:
+    type: string
+    description: Duration in human-readable format like "1m", "10s", "1h25m43s" where "m" = "minutes", "s" = "seconds", "h" = "hours"
+
+  linkedResource:
+    type: object
+    properties: 
+      id:
+        type: string64
+      type?:
+        type: string64
+      name?:
+        type: string256
+
+  workflowDefinition:
+    type: object
+    description: Workflow object definition
+    properties: 
+      uuid?:
+        type: uuid
+        description: Workflow object unique identifier, server-generated if not set
+      type:
+        type: string64
+        description: User-defined workflow type
+      tags?:
+        type: string64[]
+        description: User-defined tags
+      progress?:
+        type: progress
+
+  workflow:
+    type: [workflowDefinition]
+    description: Workflow object
+    properties:
+      id:
+        type: integer
+        description: Workflow identifier (server-generated)
+      issuer:
+        type: actor
+      tenant:
+        type: tenant
+      state:
+        type: executionState
+      createdAt:
+        type: time
+      updatedAt:
+        type: time
+      completedAt?:
+        type: time
+      result?:
+        type: executionResult
+
+  taskPriority:
+    type: string
+    description: Task priority
+    enum: ["low", "belowNormal", "normal", "aboveNormal", "high"]
+
+  taskDefinition:
+    type: object
+    description: Task object definition
+    properties: 
+      uuid?:
+        type: uuid
+        description: Task object unique identifier, server-generated if not set
+      type:
+        type: string64
+        description: User-defined task type
+      queue:
+        type: string64
+        description: Target queue
+      priority:
+        type: taskPriority
+      heartBeatInterval?:
+        type: duration
+        description: Required interval for executor to report the task current status
+      queueTimeout?:
+        type: duration
+        description: Time limit for the task to remain unassigned
+      ackTimeout?:
+        type: duration
+        description: Time limit for an executor to confirm it has started the task, default is "5s"
+      execTimeout?:
+        type: duration
+        description: Time limit for an executor to complete the task
+      lifeTime?:
+        type: duration
+        description: Time limit for the task to remain uncompleted
+      maxAssignCount?:
+        type: integer
+        description: Limit for assignment attempts, default is 1
+      cancellable?:
+        type: boolean
+        description: Indicates that the task is cancellable, heartBeatInterval must be set for cancellable tasks
+      startedByUser?:
+        type: string256
+        description: Name of the user that created the task
+      policy?:
+        type: linkedResource
+        description: Link to a policy which execution required the task creation
+      resource?:
+        type: linkedResource
+        description: Link to a resource which the task is related to
+      tags?:
+        type: string64[]
+        description: User-defined tags
+      affinity?:
+        type: object
+        description: Task affinity
+        properties: 
+          agentId?:
+            type: string64
+            description: Limit task affinity to this agent
+          clusterId?:
+            type: string64
+            description: Limit task affinity to this cluster
+      argument?:
+        type: blob
+        description: Task argument
+      workflowId?:
+        type: integer
+        description: Identifier of workflow the task is related to
+      context?:
+        type: blob
+        description: Task context
+           
+  task:
+    type: [taskDefinition]
+    description: Task object
+    properties:
+      id:
+        type: integer
+        description: Task identifier (server-generated)
+      state:
+        type: executionState
+      issuer:
+        type: actor
+        description: Entity which created the task
+      enqueuedAt:
+        type: time
+      assignedAt?:
+        type: time
+      startedAt?:
+        type: time
+      updatedAt:
+        type: time
+      completedAt?:
+        type: time
+      assignCount:
+        type: integer
+        description: Current assignment count
+      cancelRequested:
+        type: boolean
+      executor?:
+        type: actor
+        description: Executor identity
+      tenant:
+        type: tenant
+      blockers?:
+        type: blocker[]
+        description: The list of reasons why the task cannot be completed without some user input
+      result?:
+        type: executionResult
+
+  taskShort:
+    type: object
+    description: Task object short form
+    properties:
+      id:
+        type: integer
+      uuid:
+        type: uuid
+      type:
+        type: string64
+      queue:
+        type: string64
+      tenant:
+        type: tenant
+      state:
+        type: executionState
+
+  activityDefinition:
+    type: object
+    description: Activity object definition
+    properties:
+      uuid?:
+        type: uuid
+        description: Activity object unique identifier, server-generated if not set
+      type:
+        type: string64
+        description: User-defined activity type
+      taskId:
+        type: integer
+        description: Identifier of task the activity is related to
+      parentActivityId?:
+        type: integer
+        description: Identifier of parent activity
+      progress?:
+        type: progress
+      tags?:
+        type: string64[]
+        description: User-defined tags
+      resource?:
+        type: linkedResource
+        description: Link to a resource which the activity is related to
+      state:
+        type: executionState
+      details?:
+        type: blob
+        description: Activity details
+            
+  activity:
+    type: [activityDefinition]
+    description: Activity object
+    properties:
+      id:
+        type: integer
+        description: Activity identifier (server-generated)
+      workflowId?:
+        type: integer
+        description: Identifier of workflow the activity is related to
+      policy?:
+        type: linkedResource
+        description: Link to a policy which execution required the activity creation
+      startedByUser?:
+        type: string256
+        description: Name of the user that created the activity
+      context?:
+        type: blob
+        description: Activity context
+      createdAt:
+        type: time
+      startedAt?:
+        type: time
+      updatedAt:
+        type: time
+      completedAt?:
+        type: time
+      tenant:
+        type: tenant
+      executor:
+        type: actor
+      result?:
+        type: executionResult
+
+  activityShort:
+    type: object
+    description: Activity object short form
+    properties:
+      id:
+        type: integer
+      uuid:
+        type: uuid
+      type:
+        type: string64
+      progress?:
+        type: progress
+      tenant:
+        type: tenant
+      state:
+        type: executionState
+
+  blockerDefinition:
+    type: object
+    description: Definition of task blocker
+    properties: 
+      uuid?:
+        type: uuid
+        description: Blocker object unique identifier, server-generated if not set
+      taskId:
+        type: integer
+      activityId?:
+        type: integer
+      issue:
+        type: blob
+        description: The reason a task cannot complete without user intervention
+
+  blocker:
+    type: [blockerDefinition]
+    description: Blocker object
+    properties: 
+      id:
+        type: integer
+        description: Blocker identifier (server-generated)
+      tenant:
+        type: tenant
+      solution?:
+        type: blob
+        description: Solution provided by user
+
+  eventDefinition:
+    type: object
+    description: Event occurred during a task execution
+    properties: 
+      code:
+        type: integer
+      taskId:
+        type: integer
+      activityId?:
+        type: integer
+      severity:
+        type: string
+        enum: ["info", "warning", "error"]
+      message?:
+        type: string
+      payload?:
+        type: blob
+      occurredAt:
+        type: time
+
+  event:
+    type: [eventDefinition]
+    description: Received event
+    properties: 
+      receivedAt:
+        type: time
+      tenant:
+        type: tenant
+      agent:
+        type: actor
+
+  levelOfDetail:
+    type: string
+    enum: ["short", "long", "full", "debug", "count"]
+
+  timeFilter:
+    type: string
+    description: |
+      Time in one of the follwing forms [RFC3339, RFC1123, RFC850, ANSI, UnixTimestamp (integer), UnixTimestampNano (integer + "ns" postfix)]
+      Supported operations are
+        equal 'value'
+        less-than 'lt(value)'
+        less-equal 'le(value)'
+        greater-than 'gt(value)'
+        greater-equal 'ge(value)'
+
+  taskConsumer:
+    type: object
+    description: Task consumer
+    properties:
+      queues:
+        type: string64[]
+        description: List of consumed queues, cannot be empty
+      timeout?:
+        type: duration
+        description: Time during which the consumer is valid
+      qos?:
+        type: integer
+        description: Max number of tasks which the consumer can handle at once, default is 1
+
+  taskHeartbeat:
+    type: object
+    description: Task heartbeat
+    properties:
+      taskId:
+        type: integer
+        description: Task identifier
+
+  taskControl:
+    type: object
+    description: Task control object
+    properties:
+      mustCancel:
+        type: boolean
+        description: Task must be cancelled by the executor
+      resolvedBlockers?:
+        type: blocker[]
+        description: Resolved task blockers
+
+/status:
+  get:
+    description: Show current node status
+    responses: 
+      200:
+        body:
+          application/json:
+            type: nodeHealth
+
+/queues:
+  get:
+    is: [ScopedByContextTenant]
+    (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
+    description: List queue names
+    responses: 
+      200:
+        body: 
+          application/json:
+            type: collection
+            description: a collection of queue names
+
+  /{queue-name}:
+    get:
+      is: [ScopedByContextTenant]
+      (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
+      description: Show queue stats
+      responses: 
+        200:
+          body: 
+            application/json:
+              type: queueStats
+        404:
+          description: Queue does not exist
+          body: 
+            application/json:
+              type: domainError
+
+/workflows:
+  is: [ScopedByContextTenant]
+  post:  
+    (AllowedTo): ["task_manager::admin", "task_manager::issuer"]
+    description: Register a new workflow
+    body: 
+      application/json:
+        type: workflowDefinition
+    queryParameters: 
+      noreply?:
+        type: integer
+        description: Indication that no body is required in successful reply
+    responses: 
+      201:
+        description: Workflow is registered
+        body: 
+          application/json:
+            type: workflow
+      204:
+        description: Workflow is registered and no reply body is required
+      400:
+        description: Bad user input
+        body: 
+          application/json:
+            type: domainError
+      500:
+        description: Server error
+        body: 
+          application/json:
+            type: domainError
+  get:
+    (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
+    description: Get a list of workflows
+    queryParameters: 
+      limit?:
+        type: integer
+        description: Page size
+      after?:
+        type: pageToken
+        description: Next page token, only limit is allowed in conjunction with this parameter
+      order?:
+        type: string
+        description: Result ordering (position dependent), the form is 'asc(field)' or 'desc(field)', fields are ["id", "uuid", "state", "createdAt", "updatedAt", "completedAt"]
+      id?:
+        type: integer
+        description: ID filter, multiple entries are accepted
+      uuid?:
+        type: uuid
+        description: UUID filter, multiple entries are accepted
+      type?:
+        type: string64
+        description: Type filter, multiple entries are accepted
+      state?:
+        type: executionState
+        description: State filter, multiple entries are accepted
+      resultCode?:
+        type: resultCode
+        description: Code filter, multiple entries are accepted
+      createdAt?:
+        type: timeFilter
+        description: Time filter, single entry is accepted
+      updatedAt?:
+        type: timeFilter
+        description: Time filter, single entry is accepted
+      completedAt?:
+        type: timeFilter
+        description: Time filter, single entry is accepted
+      tag?:
+        type: string64
+        description: Tag filter, multiple entries are accepted
+    responses:
+      200:
+        body:
+          application/json:
+            type: pagedCollection
+            description: workflow collection
+      400:
+        description: Bad user input
+        body: 
+          application/json:
+            type: domainError
+      500:
+        description: Server error
+        body: 
+          application/json:
+            type: domainError
+
+  /{workflow-id}:
+    get:
+      (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
+      description: Get a single workflow object
+      responses: 
+        200:
+          body:
+            application/json:
+              type: workflow
+        404:
+          description: Workflow does not exist
+          body: 
+            application/json:
+              type: domainError
+        400:
+          description: Bad user input
+          body: 
+            application/json:
+              type: domainError
+        500:
+          description: Server error
+          body: 
+            application/json:
+              type: domainError
+
+    /progress:
+      put:
+        (AllowedTo): ["task_manager::admin", "task_manager::issuer"]
+        description: Set workflow progress
+        queryParameters: 
+          value:
+            type: integer
+        responses: 
+          204:
+            description: OK
+          409:
+            description: Data conflict
+            body: 
+              application/json:
+                type: domainError
+          404:
+            description: Workflow does not exist
+            body: 
+              application/json:
+                type: domainError
+          400:
+            description: Bad user input
+            body: 
+              application/json:
+                type: domainError
+          500:
+            description: Server error
+            body: 
+              application/json:
+                type: domainError
+
+    /completed:
+      put:
+        (AllowedTo): ["task_manager::admin", "task_manager::issuer"]
+        description: Complete workflow
+        body: 
+          application/json:
+            type: executionResult
+        responses: 
+          204:
+            description: OK
+          409:
+            description: Data conflict
+            body: 
+              application/json:
+                type: domainError
+          404:
+            description: Workflow does not exist
+            body: 
+              application/json:
+                type: domainError
+          400:
+            description: Bad user input
+            body: 
+              application/json:
+                type: domainError
+          500:
+            description: Server error
+            body: 
+              application/json:
+                type: domainError
+
+/tasks:
+  is: [ScopedByContextTenant]
+  post:
+    (AllowedTo): ["task_manager::admin", "task_manager::issuer"]
+    description: Register a new task
+    body: 
+      application/json:
+        type: taskDefinition
+    queryParameters: 
+      noreply?:
+        type: integer
+        description: Indication that no body is required in successful reply
+    responses: 
+      201:
+        description: Task is registered
+        body: 
+          application/json:
+            type: taskShort
+      204:
+        description: Task is registered and no reply body is required
+      400:
+        description: Bad user input
+        body: 
+          application/json:
+            type: domainError
+      500:
+        description: Server error
+        body: 
+          application/json:
+            type: domainError
+
+  get:
+    (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
+    description: Get a list of tasks
+    queryParameters:
+      lod?:
+        type: levelOfDetail
+      limit?:
+          type: integer
+          description: Page size
+      after?:
+        type: pageToken
+        description: Next page token, only limit is allowed in conjunction with this parameter
+      order?:
+        type: string
+        description: |
+          Result ordering (position dependent)
+          form is 'asc(field)' or 'desc(field)'
+          fields are ["id", "uuid", "type", "priority", "startedByUser", "state", "enqueuedAt", "assignedAt", "startedAt", "updatedAt", "completedAt"]
+      executorId?:
+        type: string
+        description: filter per task executor ID.
+      id?:
+        type: integer
+        description: ID filter, multiple entries are accepted
+      uuid?:
+        type: uuid
+        description: UUID filter, multiple entries are accepted
+      type?:
+        type: string64
+        description: Type filter, multiple entries are accepted
+      queue?:
+        type: string64
+        description: Queue filter, multiple entries are accepted
+      priority?:
+        type: taskPriority
+        description: Priority filter, multiple entries are accepted
+      startedBy?:
+        type: string256
+        description: Started by user filter, multiple entries are accepted, 'like' is supported in the form 'like(value)'
+      policyId?:
+        type: string64
+        description: Policy id filter, multiple entries are accepted
+      policyName?:
+        type: string256
+        description: Policy name filter, multiple entries are accepted, 'like' is supported in the form 'like(value)'
+      policyType?:
+        type: string64
+        description: Policy type filter, multiple entries are accepted
+      resourceId?:
+        type: string64
+        description: Resource id filter, multiple entries are accepted
+      resourceName?:
+        type: string256
+        description: Resource name filter, multiple entries are accepted, 'like' is supported in the form 'like(value)' 
+      resouceType?:
+        type: string64
+        description: Resource type filter, multiple entries are accepted
+      workflowId?:
+        type: integer
+        description: Workflow ID filter, multiple entries are accepted
+      state?:
+        type: executionState
+        description: State filter, multiple entries are accepted
+      resultCode?:
+        type: resultCode
+        description: Code filter, multiple entries are accepted
+      enqueuedAt?:
+        type: timeFilter
+        description: Time filter, single entry is accepted
+      assignedAt?:
+        type: timeFilter
+        description: Time filter, single entry is accepted
+      startedAt?:
+        type: timeFilter
+        description: Time filter, single entry is accepted
+      updatedAt?:
+        type: timeFilter
+        description: Time filter, single entry is accepted
+      completedAt?:
+        type: timeFilter
+        description: Time filter, single entry is accepted
+      tag?:
+        type: string64
+        description: Tag filter, multiple entries are accepted
+    responses:
+      200:
+        body:
+          application/json:
+            type: pagedCollection
+            description: task collection
+      400:
+        description: Bad user input
+        body: 
+          application/json:
+            type: domainError
+      500:
+        description: Server error
+        body: 
+          application/json:
+            type: domainError
+
+  /{task-id}:
+    get:
+      (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
+      description: Get the single task
+      queryParameters: 
+        lod?:
+          type: levelOfDetail
+      responses: 
+        200:
+          body:
+            application/json:
+              type: task
+        404:
+          description: Task does not exist
+          body: 
+            application/json:
+              type: domainError
+        400:
+          description: Bad user input
+          body: 
+            application/json:
+              type: domainError
+        500:
+          description: Server error
+          body: 
+            application/json:
+              type: domainError
+
+    delete:
+      (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
+      description: Cancel the task
+      responses: 
+        204:
+          description: OK
+        404:
+          description: Task does not exist
+          body: 
+            application/json:
+              type: domainError
+        409:
+          description: Data conflict
+          body: 
+            application/json:
+              type: domainError
+        500:
+          description: Server error
+          body: 
+            application/json:
+              type: domainError
+    
+    /started:
+      put:
+        (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
+        description: Confirm the task is started
+        responses: 
+          204:
+            description: OK
+          404:
+            description: Task does not exist
+            body: 
+              application/json:
+                type: domainError
+          409:
+            description: Data conflict
+            body: 
+              application/json:
+                type: domainError
+          500:
+            description: Server error
+            body: 
+              application/json:
+                type: domainError
+
+    /progress:
+      put:
+        (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
+        description: Set task progress
+        queryParameters: 
+          value:
+            type: integer
+        responses: 
+          204:
+            description: OK
+          409:
+            description: Data conflict
+            body: 
+              application/json:
+                type: domainError
+          404:
+            description: Task does not exist
+            body: 
+              application/json:
+                type: domainError
+          400:
+            description: Bad user input
+            body: 
+              application/json:
+                type: domainError
+          500:
+            description: Server error
+            body: 
+              application/json:
+                type: domainError
+
+    /completed:
+      put:
+        (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
+        description: Complete the task
+        body: 
+          application/json:
+            type: executionResult
+        responses: 
+          204:
+            description: OK
+          409:
+            description: Data conflict
+            body: 
+              application/json:
+                type: domainError
+          404:
+            description: Task does not exist
+            body: 
+              application/json:
+                type: domainError
+          400:
+            description: Bad user input
+            body: 
+              application/json:
+                type: domainError
+          500:
+            description: Server error
+            body: 
+              application/json:
+                type: domainError
+
+/activities:
+  is: [ScopedByContextTenant]
+  post:
+    (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
+    description: Register a new activity
+    body: 
+      application/json:
+        type: activityDefinition
+    queryParameters: 
+      noreply?:
+        type: integer
+        description: Indication that no body is required in successful reply
+    responses: 
+      201:
+        description: Activity is registered
+        body: 
+          application/json:
+            type: activityShort
+      204:
+        description: Activity is registered and no reply body is required
+      400:
+        description: Bad user input
+        body: 
+          application/json:
+            type: domainError
+      500:
+        description: Server error
+        body: 
+          application/json:
+            type: domainError
+
+  get:
+    (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
+    description: Get a list of activities
+    queryParameters:
+      lod?:
+        type: levelOfDetail
+      limit?:
+        type: integer
+        description: Page size
+      after?:
+        type: pageToken
+        description: Next page token, only limit is allowed in conjunction with this parameter
+      order?:
+        type: string
+        description: |
+          Result ordering (position dependent)
+          form is 'asc(field)' or 'desc(field)'
+          fields are ["id", "uuid", "type", "startedByUser", "state", "createdAt", "startedAt", "updatedAt", "completedAt"]
+      id?:
+        type: integer
+        description: ID filter, multiple entries are accepted
+      uuid?:
+        type: uuid
+        description: UUID filter, multiple entries are accepted
+      type?:
+        type: string64
+        description: Type filter, multiple entries are accepted
+      startedBy?:
+        type: string256
+        description: Started by user filter, multiple entries are accepted, 'like' is supported in the form 'like(value)'
+      policyId?:
+        type: string64
+        description: Policy id filter, multiple entries are accepted
+      policyName?:
+        type: string256
+        description: Policy name filter, multiple entries are accepted, 'like' is supported in the form 'like(value)'
+      policyType?:
+        type: string64
+        description: Policy type filter, multiple entries are accepted
+      resourceId?:
+        type: string64
+        description: Resource id filter, multiple entries are accepted
+      resourceName?:
+        type: string256
+        description: Resource name filter, multiple entries are accepted, 'like' is supported in the form 'like(value)' 
+      resouceType?:
+        type: string64
+        description: Resource type filter, multiple entries are accepted
+      taskId?:
+        type: integer
+        description: Task ID filter, multiple entries are accepted
+      workflowId?:
+        type: integer
+        description: Workflow ID filter, multiple entries are accepted
+      parentActivityId?:
+        type: integer
+        description: Parent activity ID filter, multiple entries are accepted
+      state?:
+        type: executionState
+        description: State filter, multiple entries are accepted
+      resultCode?:
+        type: resultCode
+        description: Code filter, multiple entries are accepted
+      createdAt?:
+        type: timeFilter
+        description: Time filter, single entry is accepted
+      startedAt?:
+        type: timeFilter
+        description: Time filter, single entry is accepted
+      updatedAt?:
+        type: timeFilter
+        description: Time filter, single entry is accepted
+      completedAt?:
+        type: timeFilter
+        description: Time filter, single entry is accepted
+      tag?:
+        type: string64
+        description: Tag filter, multiple entries are accepted
+    responses:
+      200:
+        body:
+          application/json:
+            type: pagedCollection
+            description: activity collection
+      400:
+        description: Bad user input
+        body: 
+          application/json:
+            type: domainError
+      500:
+        description: Server error
+        body: 
+          application/json:
+            type: domainError
+
+  /{activity-id}:
+    get:
+      (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
+      description: Get the single activity
+      queryParameters: 
+        lod?:
+          type: levelOfDetail
+      responses: 
+        200:
+          body:
+            application/json:
+              type: activity
+        404:
+          description: Activity does not exist
+          body: 
+            application/json:
+              type: domainError
+        400:
+          description: Bad user input
+          body: 
+            application/json:
+              type: domainError
+        500:
+          description: Server error
+          body: 
+            application/json:
+              type: domainError
+
+    /started:
+      put:
+        (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
+        description: Set activity started
+        responses: 
+          204:
+            description: OK
+          404:
+            description: Activity does not exist
+            body: 
+              application/json:
+                type: domainError
+          409:
+            description: Data conflict
+            body: 
+              application/json:
+                type: domainError
+          500:
+            description: Server error
+            body: 
+              application/json:
+                type: domainError
+
+    /progress:
+      put:
+        (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
+        description: Set activity progress
+        queryParameters: 
+          value:
+            type: integer
+        responses: 
+          204:
+            description: OK
+          409:
+            description: Data conflict
+            body: 
+              application/json:
+                type: domainError
+          404:
+            description: Activity does not exist
+            body: 
+              application/json:
+                type: domainError
+          400:
+            description: Bad user input
+            body: 
+              application/json:
+                type: domainError
+          500:
+            description: Server error
+            body: 
+              application/json:
+                type: domainError
+
+    /completed:
+      put:
+        (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
+        description: Complete the activity
+        body: 
+          application/json:
+            type: executionResult
+        responses: 
+          204:
+            description: OK
+          409:
+            description: Data conflict
+            body:
+              application/json:
+                type: domainError
+          404:
+            description: Activity does not exist
+            body: 
+              application/json:
+                type: domainError
+          400:
+            description: Bad user input
+            body: 
+              application/json:
+                type: domainError
+          500:
+            description: Server error
+            body: 
+              application/json:
+                type: domainError
+
+/consumers:
+  is: [ScopedByContextTenant]
+  post:
+    (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
+    description: Register a new task consumer
+    body: 
+      application/json:
+        type: taskConsumer
+    responses: 
+      200:
+        description: List of assigned tasks
+        body: 
+          application/json:
+            type: collection
+            description: Task collection
+      204:
+        description: No tasks at the moment
+      400:
+        description: Bad user input
+        body: 
+          application/json:
+            type: domainError
+      500:
+        description: Server error
+        body: 
+          application/json:
+            type: domainError
+
+/heartbeats:
+  is: [ScopedByContextTenant]
+  post:
+    (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
+    description: Heartbeat the task
+    body: 
+      application/json:
+        type: taskHeartbeat
+    responses: 
+      200:
+        description: OK
+        body: 
+          application/json:
+            type: taskControl
+      404:
+        description: Task not found, execution must be aborted
+        body: 
+          application/json:
+            type: domainError
+      409:
+        description: Data conflict, execution must be aborted
+        body: 
+          application/json:
+            type: domainError
+      400:
+        description: Bad user input
+        body: 
+          application/json:
+            type: domainError
+      500:
+        description: Server error
+        body: 
+          application/json:
+            type: domainError  
+
+/blockers:
+  is: [ScopedByContextTenant]
+  post:
+    (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
+    description: Register a task execution blocker
+    body: 
+      application/json:
+        type: blockerDefinition
+    responses: 
+      201:
+        description: Blocker is registered
+        body: 
+          application/json:
+            type: blocker
+      404:
+        description: Task not found
+        body: 
+          application/json:
+            type: domainError
+      409:
+        description: Data conflict
+        body: 
+          application/json:
+            type: domainError
+      400:
+        description: Bad user input
+        body: 
+          application/json:
+            type: domainError
+      500:
+        description: Server error
+        body: 
+          application/json:
+            type: domainError
+
+  get:
+    (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
+    description: Get a list of blockers
+    queryParameters: 
+      limit?:
+        type: integer
+        description: Page size
+      after?:
+        type: pageToken
+        description: Next page token, only limit is allowed in conjunction with this parameter
+      taskId?:
+        type: integer
+        description: Task ID filter, multiple entries are accepted
+      activityId?:
+        type: integer
+        description: Activity ID filter, multiple entries are accepted
+    responses:
+      200:
+        body:
+          application/json:
+            type: pagedCollection
+            description: blocker collection
+      400:
+        description: Bad user input
+        body: 
+          application/json:
+            type: domainError
+      500:
+        description: Server error
+        body: 
+          application/json:
+            type: domainError
+
+  /{blocker-id}:
+    delete:
+      (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
+      description: Unregister the blocker
+      responses: 
+        204:
+          description: OK
+        404:
+          description: Task not found
+          body: 
+            application/json:
+              type: domainError
+        409:
+          description: Data conflict
+          body: 
+            application/json:
+              type: domainError
+        500:
+          description: Server error
+          body: 
+            application/json:
+              type: domainError
+
+    /solution:
+      put:
+        (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
+        description: Provide the blocker solution
+        body: 
+          type: blob
+        responses: 
+          204:
+            description: OK
+          404:
+            description: Blocker not found
+            body: 
+              application/json:
+                type: domainError
+          409:
+            description: Data conflict
+            body: 
+              application/json:
+                type: domainError
+          500:
+            description: Server error
+            body: 
+              application/json:
+                type: domainError
+          
+/events:
+  is: [ScopedByContextTenant]
+  post:
+    (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
+    description: Register an event
+    body: 
+      application/json:
+        type: eventDefinition
+    responses: 
+      204:
+        description: Event is registered
+      400:
+        description: Bad user input
+        body: 
+          application/json:
+            type: domainError
+      500:
+        description: Server error
+        body: 
+          application/json:
+            type: domainError
+
+  get:
+    (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
+    description: Get a list of events
+    queryParameters: 
+      limit?:
+        type: integer
+        description: Page size
+      after?:
+        type: pageToken
+        description: Next page token, only limit is allowed in conjunction with this parameter
+      taskId?:
+        type: integer
+        description: Task ID filter, multiple entries are accepted
+      activityId?:
+        type: integer
+        description: Activity ID filter, multiple entries are accepted
+    responses:
+      200:
+        body:
+          application/json:
+            type: pagedCollection
+            description: event collection
+      400:
+        description: Bad user input
+        body: 
+          application/json:
+            type: domainError
+      500:
+        description: Server error
+        body: 
+          application/json:
+            type: domainError
+
