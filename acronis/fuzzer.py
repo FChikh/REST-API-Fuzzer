@@ -21,7 +21,8 @@ def parsing(parsed_page, page):
     try:
         parsed_page['responses'] = []
         for response in page['methods'][0]['responses']:
-            tmp_dict = {'code': response['code'], 'type': response['body']['type']}
+            tmp_dict = {'code': page['methods'][0]['responses'][response]['code'],
+                        'type': page['methods'][0]['responses'][response]['body']['application/json']['type']}
             parsed_page['responses'].append(tmp_dict)
     except KeyError:
         pass
