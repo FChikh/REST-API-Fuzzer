@@ -34,9 +34,24 @@ def parsing(parsed_page, page):
     except KeyError:
         pass
 
+
 os.system('node parser.js')
 with open('parsed.json', 'r') as json_file:
-    parsed_data = json.load(json_file)
-data = {}
-parsing(data, parsed_data)
-print(data)
+    data = json.load(json_file)
+print(data.keys())
+data = {'types': data['types'], 'resources': data['resources'], 'baseUri': data['baseUri']}
+for resource in data['resources']:
+    print(resource)
+
+for resource in data['resources']:
+    for method in resource['methods']:
+        if method['method'] == 'get':
+
+        elif method['method'] == 'post':
+            pass
+        elif method['method'] == 'put':
+            pass
+        elif method['method'] == 'delete':
+            pass
+
+    pass
