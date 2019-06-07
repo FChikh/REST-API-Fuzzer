@@ -44,6 +44,21 @@ def parsing(parsed_page, page):
                     tmp_method['queryParameters'].append(tmp_dict)
             except KeyError:
                 pass
+            try:
+                tmp_method['body'] = {'name': method['body']['application/json']['name'], 'properties': []}
+                try:
+                    for type in parsed_data['types']:
+                        tmp = type[list(type.keys())[0]]
+                        if tmp['name'] == tmp_method['body']['name']:
+                            for parameter in tmp['properties']:
+                                tmp_dict = {'name': tmp['properties'][parameter]['name'],
+                                            'type': tmp['properties'][parameter]['type'][0],
+                                            'required': tmp['properties'][parameter]['required']}
+                                tmp_method['body']['properties'].append(tmp_dict)
+                except KeyError:
+                    pass
+            except KeyError:
+                tmp_method['body'] = {}
             tmp_method['responses'] = []
             try:
                 for response in method['responses']:
