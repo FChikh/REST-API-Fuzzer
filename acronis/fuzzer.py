@@ -19,10 +19,10 @@ def parsing(parsed_page, page):
     except KeyError:
         pass
     try:
-        parsed_page['responces'] = []
-        for responce in page['methods'][0]['responces']:
-            tmp_dict = {'code': responce['code'], 'type': responce['body']['type']}
-            parsed_page['responces'].append(tmp_dict)
+        parsed_page['responses'] = []
+        for response in page['methods'][0]['responses']:
+            tmp_dict = {'code': response['code'], 'type': response['body']['type']}
+            parsed_page['responses'].append(tmp_dict)
     except KeyError:
         pass
     parsed_page['pages'] = []
