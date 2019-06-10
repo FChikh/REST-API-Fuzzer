@@ -8,11 +8,19 @@ with open('parsed.json', 'r') as json_file:
 
 
 def parsing(parsed_page, page):
+    parsed_page['is_changeable'] = False
+    parsed_page['type'] = None
     try:
         parsed_page['baseUri'] = page['baseUri']
     except KeyError:
         try:
             parsed_page['uri'] = page['absoluteUri']
+            if parsed_page['uri'][-1] == '}':
+                parsed_page['is_changeable'] = True
+                if parsed_page['uri'][-3:-1] == 'id':
+                    parsed_page['type'] = 'integer'
+                else:
+                    parsed_page['type'] = 'string'
         except KeyError:
             pass
 
@@ -81,7 +89,7 @@ def parsing(parsed_page, page):
     try:
         for resource in page['resources']:
             parsed_page['pages'].append({})
-            parsing(parsed_page['pages'][len(parsed_page['pages']) - 1], resource)
+            parsing(parsed_page['pages'][-1], resource)
     except KeyError:
         pass
 
