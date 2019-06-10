@@ -2,6 +2,11 @@ import os
 import json
 
 
+os.system('node parser.js')
+with open('parsed.json', 'r') as json_file:
+    parsed_data = json.load(json_file)
+
+
 def parsing(parsed_page, page):
     try:
         parsed_page['baseUri'] = page['baseUri']
@@ -9,23 +14,63 @@ def parsing(parsed_page, page):
         try:
             parsed_page['uri'] = page['absoluteUri']
         except KeyError:
-            print(page)
+            pass
+
     try:
         parsed_page['protocols'] = page['methods'][0]['protocols']
     except KeyError:
         parsed_page['protocols'] = page['protocols']
+
+    parsed_page['methods'] = []
     try:
-        parsed_page['method'] = page['methods'][0]['method']
+        for method in page['methods']:
+            tmp_method = {}
+            try:
+                tmp_method['method'] = method['method']
+            except KeyError:
+                pass
+            tmp_method['queryParameters'] = []
+            try:
+                for queryParameter in method['queryParameters']:
+                    tmp_dict = {'name': method['queryParameters'][queryParameter]['name'],
+                                'type': method['queryParameters'][queryParameter]['type'][0],
+                                'required': method['queryParameters'][queryParameter]['required']}
+                    try:
+                        for type in parsed_data['types']:
+                            if type[list(type.keys())[0]]['name'] == tmp_dict['type']:
+                                tmp_dict['type'] = type[list(type.keys())[0]]['type'][0]
+                    except KeyError:
+                        pass
+                    tmp_method['queryParameters'].append(tmp_dict)
+            except KeyError:
+                pass
+            try:
+                tmp_method['body'] = {'name': method['body']['application/json']['name'], 'properties': []}
+                try:
+                    for type in parsed_data['types']:
+                        tmp = type[list(type.keys())[0]]
+                        if tmp['name'] == tmp_method['body']['name']:
+                            for parameter in tmp['properties']:
+                                tmp_dict = {'name': tmp['properties'][parameter]['name'],
+                                            'type': tmp['properties'][parameter]['type'][0],
+                                            'required': tmp['properties'][parameter]['required']}
+                                tmp_method['body']['properties'].append(tmp_dict)
+                except KeyError:
+                    pass
+            except KeyError:
+                tmp_method['body'] = {}
+            tmp_method['responses'] = []
+            try:
+                for response in method['responses']:
+                    tmp_dict = {'code': method['responses'][response]['code'],
+                                'type': method['responses'][response]['body']['application/json']['type'][0]}
+                    parsed_page['responses'].append(tmp_dict)
+            except KeyError:
+                pass
+            parsed_page['methods'].append(tmp_method)
     except KeyError:
         pass
-    try:
-        parsed_page['responses'] = []
-        for response in page['methods'][0]['responses']:
-            tmp_dict = {'code': page['methods'][0]['responses'][response]['code'],
-                        'type': page['methods'][0]['responses'][response]['body']['application/json']['type']}
-            parsed_page['responses'].append(tmp_dict)
-    except KeyError:
-        pass
+
     parsed_page['pages'] = []
     try:
         for resource in page['resources']:
@@ -33,20 +78,15 @@ def parsing(parsed_page, page):
             parsing(parsed_page['pages'][len(parsed_page['pages']) - 1], resource)
     except KeyError:
         pass
+data = {}
+parsing(data, parsed_data)
+print(data)
 
-
-os.system('node parser.js')
-with open('parsed.json', 'r') as json_file:
-    data = json.load(json_file)
-print(data.keys())
-data = {'types': data['types'], 'resources': data['resources'], 'baseUri': data['baseUri']}
-for resource in data['resources']:
-    print(resource)
 
 for resource in data['resources']:
     for method in resource['methods']:
         if method['method'] == 'get':
-
+            pass
         elif method['method'] == 'post':
             pass
         elif method['method'] == 'put':
