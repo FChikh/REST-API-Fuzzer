@@ -4,7 +4,7 @@ import json
 
 os.system('node parser.js')
 with open('parsed.json', 'r') as json_file:
-    parsed_data = json.load(json_file)
+    data = json.load(json_file)
 
 
 def parsing(parsed_page, page):
@@ -17,9 +17,9 @@ def parsing(parsed_page, page):
             pass
 
     try:
-        parsed_page['protocols'] = page['methods'][0]['protocols']
-    except KeyError:
         parsed_page['protocols'] = page['protocols']
+    except KeyError:
+        parsed_page['protocols'] = []
 
     parsed_page['methods'] = []
     try:
@@ -36,25 +36,31 @@ def parsing(parsed_page, page):
                                 'type': method['queryParameters'][queryParameter]['type'][0],
                                 'required': method['queryParameters'][queryParameter]['required']}
                     try:
-                        for type in parsed_data['types']:
+                        for type in data['types']:
                             if type[list(type.keys())[0]]['name'] == tmp_dict['type']:
                                 tmp_dict['type'] = type[list(type.keys())[0]]['type'][0]
+                                break
                     except KeyError:
                         pass
                     tmp_method['queryParameters'].append(tmp_dict)
             except KeyError:
                 pass
             try:
-                tmp_method['body'] = {'name': method['body']['application/json']['name'], 'properties': []}
+                tmp_method['body'] = {'name': method['body']['application/json']['type'][0], 'properties': []}
                 try:
-                    for type in parsed_data['types']:
+                    for type in data['types']:
                         tmp = type[list(type.keys())[0]]
                         if tmp['name'] == tmp_method['body']['name']:
                             for parameter in tmp['properties']:
                                 tmp_dict = {'name': tmp['properties'][parameter]['name'],
                                             'type': tmp['properties'][parameter]['type'][0],
                                             'required': tmp['properties'][parameter]['required']}
+                                for type in data['types']:
+                                    if type[list(type.keys())[0]]['name'] == tmp_dict['type']:
+                                        tmp_dict['type'] = type[list(type.keys())[0]]['type'][0]
+                                        break
                                 tmp_method['body']['properties'].append(tmp_dict)
+                            break
                 except KeyError:
                     pass
             except KeyError:
@@ -64,7 +70,7 @@ def parsing(parsed_page, page):
                 for response in method['responses']:
                     tmp_dict = {'code': method['responses'][response]['code'],
                                 'type': method['responses'][response]['body']['application/json']['type'][0]}
-                    parsed_page['responses'].append(tmp_dict)
+                    tmp_method['responses'].append(tmp_dict)
             except KeyError:
                 pass
             parsed_page['methods'].append(tmp_method)
@@ -78,6 +84,8 @@ def parsing(parsed_page, page):
             parsing(parsed_page['pages'][len(parsed_page['pages']) - 1], resource)
     except KeyError:
         pass
+
+
 data = {}
 parsing(data, parsed_data)
 print(data)

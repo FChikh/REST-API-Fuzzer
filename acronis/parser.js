@@ -1,5 +1,3 @@
-console.log('RAML 1.0 JS Parser Test');
-
 var path = require("path");
 var raml1Parser = require('../js-parser/dist/index');
 var fs = require("fs")
