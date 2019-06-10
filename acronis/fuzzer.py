@@ -1,5 +1,6 @@
 import os
 import json
+import wfuzz
 
 
 os.system('node parser.js')
@@ -96,4 +97,4 @@ def parsing(parsed_page, page):
 
 parsed_data = {}
 parsing(parsed_data, data)
-print(parsed_data['pages'][3])
+print(parsed_data['pages'])
