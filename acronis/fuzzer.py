@@ -21,6 +21,17 @@ def convert_cookies_format(cookies):
     return new_cookies
 
 
+def convert_types(type_dict):
+    formatted_dict = {}
+    for key, value in type_dict.values():
+        if type(value) == dict:
+            formatted_dict += convert_types(value)
+        else:
+            formatted_dict += {key: value}
+    return formatted_dict
+
+
+
 def parsing(parsed_page, page):
     parsed_page['is_changeable'] = False
     parsed_page['type'] = None
@@ -107,39 +118,63 @@ def fuzzing(tasks, sess, req_types, types):
                 url = domain + tasks['uri'] + '?'
                 for j in params:
                     if i != j and not j['required']:
-                        print(j['type'], j['name'])
-                        url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                        if types[j['type']] == dict:
+                            for key, value in convert_types(types[j['type']]):
+                                url += key + '=' + rstr.xeger(value) + '&'
+                        else:
+                            url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
 
                 url += i['name'] + '=FUZZ'
-                print(url)
+                # print(url)
                 s = wfuzz.FuzzSession(url=url, cookie=convert_cookies_format(sess.cookies.get_dict())).get_payload(req_types)
-                for r in s.fuzz():
+                for r in s.fuzz(hc=[200, 400]):
                     print(r)
         elif method['method'] == 'post':
+            print(1)
             params_body = method['body']['properties']
             params_query = method['queryParameters']
             for i in params_query:
                 url = domain + tasks['uri'] + '?'
                 postdata = ''
                 for j in params_query:
-                    if i != j and j['required']:
-                        try:
-                            url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
-                        except KeyError:
-                            pass
+                    if types[j['type']] == dict:
+                        for key, value in convert_types(types[j['type']]):
+                            url += key + '=' + rstr.xeger(value) + '&'
+                    else:
+                        url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
                 for j in params_body:
-                    if i != j and j['required']:
-                        try:
-                            postdata += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
-                        except KeyError:
-                            pass
+                    if types[j['type']] == dict:
+                        for key, value in convert_types(types[j['type']]):
+                            postdata += key + '=' + rstr.xeger(value) + '&'
+                    else:
+                        postdata += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
                 url += i['name'] + '=FUZZ'
+                postdata = postdata[:-1]
                 print(url)
                 s = wfuzz.FuzzSession(url=url, cookie=convert_cookies_format(
-                    sess.cookies.get_dict())).get_payload(req_types)
+                    sess.cookies.get_dict()), postdata=postdata).get_payload(req_types)
                 for r in s.fuzz(hc=[200, 400]):
                     print(r)
-            pass
+            for i in params_body:
+                url = domain + tasks['uri'] + '?'
+                postdata = ''
+                for j in params_query:
+                    if types[j['type']] == dict:
+                        for key, value in convert_types(types[j['type']]):
+                            url += key + '=' + rstr.xeger(value) + '&'
+                    else:
+                        url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                for j in params_body:
+                    if types[j['type']] == dict:
+                        for key, value in convert_types(types[j['type']]):
+                            postdata += key + '=' + rstr.xeger(value) + '&'
+                    else:
+                        postdata += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                postdata += i['name'] + '=FUZZ'
+                s = wfuzz.FuzzSession(url=url, cookie=convert_cookies_format(
+                    sess.cookies.get_dict()), postdata=postdata).get_payload(req_types)
+                for r in s.fuzz():
+                    print(r.history)
         elif method['method'] == 'put':
             pass
         elif method['method'] == 'delete':
