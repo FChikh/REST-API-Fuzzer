@@ -1,6 +1,5 @@
 import os
 import json
-import random
 
 
 os.system('node parser.js')
