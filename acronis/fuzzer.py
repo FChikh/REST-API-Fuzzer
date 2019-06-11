@@ -1,10 +1,34 @@
 import os
 import json
+import requests
+import string
+import random
 
 
 os.system('node parser.js')
 with open('parsed.json', 'r') as json_file:
     data = json.load(json_file)
+
+
+def fuzzing(page):
+    s = requests.Session()
+    headers = {'Content-type': 'application/json',
+               'Accept': 'text/plain',
+               'Content-Encoding': 'utf-8'}
+    s.post('https://mc-master-0604.msp.ru.corp.acronis.com/api/1/login',
+           data=json.dumps({"username": 'Drelb', "password": 'Egorpid1'}), verify=False, headers=headers)
+    s.get('https://mc-master-0604.msp.ru.corp.acronis.com/bc', verify=False)
+    try:
+        page['baseUri']
+        for i in range(1000):
+            s.get('https://mc-master-0604.msp.ru.corp.acronis.com' + page['baseUri'] + '/' +
+                  ''.join(random.choises(string.ascii_letters + string.digits + '_.~-', k=random.randint(100))))
+    except KeyError:
+        for i in range(1000):
+            s.get('https://mc-master-0604.msp.ru.corp.acronis.com' + page['uri'] + '/' +
+                  ''.join(random.choises(string.ascii_letters + string.digits + '_.~-', k=random.randint(100))))
+    for i in page['pages']:
+        fuzzing(i)
 
 
 def parsing(parsed_page, page):
@@ -87,6 +111,7 @@ parsed_data = {}
 parsing(parsed_data, data)
 types = {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
          'integer': r'^\d+$',
+         'boolean': r'(1|0)',
          'string64': r'^[A-Za-z0-9_\.~-]{1,64}$',
          'string256': r'^[A-Za-z0-9_\.~-]{1,256}$',
          'domainError': {'domain': r'^[A-Za-z0-9_\.~-]+$',
@@ -128,7 +153,7 @@ types = {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-
                             'execTimeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
                             'lifeTime': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
                             'maxAssignCount': r'^(-)?\d+$',
-                            'cancellable': r'(True|False)',
+                            'cancellable': r'(1|0)',
                             'startedByUser': r'^[A-Za-z0-9_\.~-]{1,256}$',
                             'policy': {'id': r'^[A-Za-z0-9_\.~-]{1,64}$',
                                        'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
@@ -173,3 +198,6 @@ types = {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-
                           'qos': r'^(-)?\d+$'},
          'taskHeartbeat': {'taskId': r'^(-)?\d+$'}
 }
+
+
+fuzzing(parsed_data)
