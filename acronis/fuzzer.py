@@ -260,6 +260,7 @@ req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
              'егор']
 
 types = {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+         'integer': r'^\d+$',
          'string64': r'^.{1,64}$',
          'string256': r'^.{1,256}$',
          'domainError': {'domain': r'^.+$',
