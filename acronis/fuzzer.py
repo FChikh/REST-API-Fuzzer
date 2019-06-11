@@ -110,7 +110,7 @@ def parsing(parsed_page, page):
         pass
 
 
-def fuzzing(tasks, sess, req_types):
+def fuzzing(tasks, sess, req_types, types):
     rand_dict = [
         'oqwhefoiqhwefohqwopefughqowiuefgoiwughqfoiuqgwoefdugqowiebwiqubedoiquwgediunqwgedgwuqeydfgioquwydoiqwuedoiqwuegdioqywedfuyfqwiuefyiueygrfiqwnhboiduh',
         'егооооор', 'ridfhidhf',
@@ -121,11 +121,10 @@ def fuzzing(tasks, sess, req_types):
             for i in params:
                 url = domain + tasks['uri'] + '?'
                 for j in params:
-                    if i != j and j['required']:
-                        try:
-                            url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
-                        except KeyError:
-                            pass
+                    if i != j: # and !j['required']:
+                        print(j['type'])
+                        url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+
                 url += i['name'] + '=FUZZ'
                 print(url)
                 s = wfuzz.FuzzSession(url=url, cookie=convert_cookies_format(sess.cookies.get_dict())).get_payload(req_types)
@@ -234,7 +233,7 @@ def fuzzing(tasks, sess, req_types):
         elif method['method'] == 'delete':
             pass
         for i in tasks['pages']:
-            fuzzing(i, sess, req_types)
+            fuzzing(i, sess, req_types, types)
 
 
 parsed_data = {}
@@ -260,4 +259,94 @@ req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
              rstr.letters(257, 2000), rstr.nonwhitespace(257, 2000), bool(random.getrandbits(1)),
              'егор']
 
-fuzzing(parsed_data['pages'][4], sess, req_types)
+types = {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+         'string64': r'^.{1,64}$',
+         'string256': r'^.{1,256}$',
+         'domainError': {'domain': r'^.+$',
+                         'code': r'^.+$'},
+         'pageToken': r'^[A-Za-z0-9+/]+=$',
+         'pagedCollection': {'cursors': {'after': r'^[A-Za-z0-9+/]+=$',
+                                         'before': r'^[A-Za-z0-9+/]+=$'}},
+         'queueStatus': {'size': r'^(-)?\d+$'},
+         'progress': {'total': r'^(-)?\d+$',
+                      'current': r'^(-)?\d+$'},
+         'actor': {'id': r'^.{1,64}$',
+                   'clusterId': r'^.{1,64}$'},
+
+         'executionState': r'(enqueued|assigned|started|paused|completed)',
+         'blob': r'^.+$',
+         'resultCode': r'(ok|error|warning|cancelled|abandoned|timedout)',
+         'executionResult': {'code': r'(ok|error|warning|cancelled|abandoned|timedout)',
+                             'error': {'domain': r'^.+$',
+                                       'code': r'^.+$'},
+                             'payload': r'^.+$'},
+         'time': r'^(\d+)-(0[1-9]|1[012])-(0[1-9]|[12]\d|3[01])[Tt]([01]\d|2[0-3]):([0-5]\d):([0-5]\d|60)(\.\d+)?(([Zz])|([\+|\-]([01]\d|2[0-3])))$',
+         'duration': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
+         'linkedResource': {'id': r'^.{1,64}$',
+                            'type': r'^.{1,64}$',
+                            'name': r'^.{1,256}$'},
+         'workflowDefinition': {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+                                'type': r'^.{1,64}$',
+                                'tags': r'^.{1,64}$',
+                                'progress': {'total': r'^(-)?\d+$',
+                                             'current': r'^(-)?\d+$'}},
+         'taskPriority': r'(low|belowNormal|normal|aboveNormal|high)',
+         'taskDefinition': {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+                            'type': r'^.{1,64}$',
+                            'queue': r'^.{1,64}$',
+                            'priority': r'(low|belowNormal|normal|aboveNormal|high)',
+                            'heartBeatInterval': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
+                            'queueTimeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
+                            'ackTimeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
+                            'execTimeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
+                            'lifeTime': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
+                            'maxAssignCount': r'^(-)?\d+$',
+                            'cancellable': r'(True|False)',
+                            'startedByUser': r'^.{1,256}$',
+                            'policy': {'id': r'^.{1,64}$',
+                                       'type': r'^.{1,64}$',
+                                       'name': r'^.{1,256}$'},
+                            'resource': {'id': r'^.{1,64}$',
+                                         'type': r'^.{1,64}$',
+                                         'name': r'^.{1,256}$'},
+                            'tags': r'^.{1,64}$',
+                            'affinity': {'agentId': r'^.{1,64}$',
+                                         'clusterId': r'^.{1,64}$'},
+                            'argument': r'^.+$',
+                            'workflowId': r'^(-)?\d+$',
+                            'context': r'^.+$'},
+         'activityDefinition': {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+                                'type': r'^.{1,64}$',
+                                'taskId': r'^(-)?\d+$',
+                                'parentActivityId': r'^(-)?\d+$',
+                                'progress': {'total': r'^(-)?\d+$',
+                                             'current': r'^(-)?\d+$'},
+                                'tags': r'^.{1,64}$',
+                                'resource': {'id': r'^.{1,64}$',
+                                             'type': r'^.{1,64}$',
+                                             'name': r'^.{1,256}$'},
+                                'state': r'(enqueued|assigned|started|paused|completed)',
+                                'details': r'^.+$'},
+         'blockerDefinition': {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+                               'taskId': r'^(-)?\d+$',
+                               'activityId': r'^(-)?\d+$',
+                               'issue': r'^.+$'},
+         'eventDefinition': {'code': r'^(-)?\d+$',
+                             'taskId': r'^(-)?\d+$',
+                             'activityId': r'^(-)?\d+$',
+                             'severity': r'(info|warning|error)',
+                             'message': r'^.+$',
+                             'payload': r'^.+$',
+                             'occurredAt': r'^(\d+)-(0[1-9]|1[012])-(0[1-9]|[12]\d|3[01])[Tt]([01]\d|2[0-3]):([0-5]\d):([0-5]\d|60)(\.\d+)?(([Zz])|([\+|\-]([01]\d|2[0-3])))$'},
+
+         'levelOfDetail': r'(short|long|full|debug|count)',
+         'timeFilter': r'^((\d+)-(0[1-9]|1[012])-(0[1-9]|[12]\d|3[01])[Tt]([01]\d|2[0-3]):([0-5]\d):([0-5]\d|60)(\.\d+)?(([Zz])|([\+|\-]([01]\d|2[0-3]))))? ((Sun|Mon|Tue|Wed|Thu|Fri|Sat), (0[1-9]|[12]\d|3[01])[Tt]([01]\d|2[0-3]) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d+) ([01]\d|2[0-3]):([0-5]\d):([0-5]\d|60) GMT)? ((Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday), (0[1-9]|[12]\d|3[01])[Tt]([01]\d|2[0-3])-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-(\d+) ([01]\d|2[0-3]):([0-5]\d):([0-5]\d|60) GMT)? (((\d+)-(0[1-9]|1[012])-(0[1-9]|[12]\d|3[01]))?$',
+         'taskConsumer': {'queues': r'^.{1,64}$',
+                          'timeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
+                          'qos': r'^(-)?\d+$'},
+         'taskHeartbeat': {'taskId': r'^(-)?\d+$'}
+}
+
+
+fuzzing(parsed_data['pages'][4], sess, req_types, types)
+
