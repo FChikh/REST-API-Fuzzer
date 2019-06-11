@@ -179,5 +179,8 @@ types = {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-
 
          'levelOfDetail': r'(short|long|full|debug|count)',
          'timeFilter': r'^((\d+)-(0[1-9]|1[012])-(0[1-9]|[12]\d|3[01])[Tt]([01]\d|2[0-3]):([0-5]\d):([0-5]\d|60)(\.\d+)?(([Zz])|([\+|\-]([01]\d|2[0-3]))))? ((Sun|Mon|Tue|Wed|Thu|Fri|Sat), (0[1-9]|[12]\d|3[01])[Tt]([01]\d|2[0-3]) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d+) ([01]\d|2[0-3]):([0-5]\d):([0-5]\d|60) GMT)? ((Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday), (0[1-9]|[12]\d|3[01])[Tt]([01]\d|2[0-3])-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-(\d+) ([01]\d|2[0-3]):([0-5]\d):([0-5]\d|60) GMT)? (((\d+)-(0[1-9]|1[012])-(0[1-9]|[12]\d|3[01]))?$',
-         
+         'taskConsumer': {'queues': r'^.{1,64}$',
+                          'timeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
+                          'qos': r'^(-)?\d+$'},
+         'taskHeartbeat': {'taskId': r'^(-)?\d+$'}
 }
