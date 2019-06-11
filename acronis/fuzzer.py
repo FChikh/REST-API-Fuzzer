@@ -1,18 +1,38 @@
-import os
+import itertools
 import json
+import os
 
+import requests
+import wfuzz
 
 os.system('node parser.js')
 with open('parsed.json', 'r') as json_file:
     data = json.load(json_file)
 
+domain = 'https://mc-master-0604.msp.ru.corp.acronis.com'
+
+
+def convert_cookies_format(cookies):
+    new_cookies = []
+    for key, value in cookies.items():
+        new_cookies.append('{}={}'.format(key, value))
+    return new_cookies
+
 
 def parsing(parsed_page, page):
+    parsed_page['is_changeable'] = False
+    parsed_page['type'] = None
     try:
         parsed_page['baseUri'] = page['baseUri']
     except KeyError:
         try:
             parsed_page['uri'] = page['absoluteUri']
+            if parsed_page['uri'][-1] == '}':
+                parsed_page['is_changeable'] = True
+                if parsed_page['uri'][-3:-1] == 'id':
+                    parsed_page['type'] = 'integer'
+                else:
+                    parsed_page['type'] = 'string'
         except KeyError:
             pass
 
@@ -46,7 +66,8 @@ def parsing(parsed_page, page):
             except KeyError:
                 pass
             try:
-                tmp_method['body'] = {'name': method['body']['application/json']['type'][0], 'properties': []}
+                tmp_method['body'] = {'name': method['body']['application/json']['type'][0],
+                                      'properties': []}
                 try:
                     for type in data['types']:
                         tmp = type[list(type.keys())[0]]
@@ -69,7 +90,8 @@ def parsing(parsed_page, page):
             try:
                 for response in method['responses']:
                     tmp_dict = {'code': method['responses'][response]['code'],
-                                'type': method['responses'][response]['body']['application/json']['type'][0]}
+                                'type': method['responses'][response]['body']['application/json'][
+                                    'type'][0]}
                     tmp_method['responses'].append(tmp_dict)
             except KeyError:
                 pass
@@ -81,25 +103,117 @@ def parsing(parsed_page, page):
     try:
         for resource in page['resources']:
             parsed_page['pages'].append({})
-            parsing(parsed_page['pages'][len(parsed_page['pages']) - 1], resource)
+            parsing(parsed_page['pages'][-1], resource)
     except KeyError:
         pass
 
 
-data = {}
-parsing(data, parsed_data)
-print(data)
+def fuzzing(tasks):
+    rand_dict = [
+        'oqwhefoiqhwefohqwopefughqowiuefgoiwughqfoiuqgwoefdugqowiebwiqubedoiquwgediunqwgedgwuqeydfgioquwydoiqwuedoiqwuegdioqywedfuyfqwiuefyiueygrfiqwnhboiduh',
+        'егооооор', 'ridfhidhf',
+        182736493484, 38, 1234567890, -999999, 0, 0.4452344, -12394812693816938719236139456934879]
+    for method in tasks['methods']:
+        if method['method'] == 'get' and not tasks['is_changeable']:
+            params = method['queryParameters']
+            for i in itertools.product([0, 1], repeat=len(params)):
+                if sum(i) == 0:
+                    continue
+                url = domain + tasks['uri'] + '?'
+                cnt = 0
+                for j in range(len(params)):
+                    if i[j] == 1:
+                        cnt += 1
+                        if cnt != 1:
+                            url += params[j]['name'] + '=FUZ' + str(cnt) + 'Z&'
+                        else:
+                            url += params[j]['name'] + '=FUZZ&'
+                print(url)
+                if sum(i) == 1:
+                    f = wfuzz.FuzzSession(url=url,
+                                          cookie=convert_cookies_format(
+                                              sess.cookies.get_dict())).get_payload(
+                        rand_dict)
+                else:
+                    payload = [rand_dict] * sum(i)
+                    f = wfuzz.FuzzSession(url=url,
+                                          cookie=convert_cookies_format(
+                                              sess.cookies.get_dict())).get_payloads(
+                        payload)
 
-
-for resource in data['resources']:
-    for method in resource['methods']:
-        if method['method'] == 'get':
-            pass
+                for r in f.fuzz(hc=[200, 400]):
+                    print(r)
         elif method['method'] == 'post':
-            pass
+            params_body = method['body']['properties']
+            params_query = method['queryParameters']
+            for i in itertools.product([0, 1], repeat=len(params_body) + len(params_query)):
+                print(i)
+                if sum(i) == 0:
+                    continue
+                url = domain + tasks['uri'] + '?'
+                cnt_query = 0
+                cnt_body = 0
+                postdata = ''
+                for j in range(len(params_body)):
+                    if i[j] == 1:
+                        cnt_body += 1
+                        if cnt_query + cnt_body == 1:
+                            postdata += params_body[j]['name'] + '=FUZZ'
+                        elif cnt_body == 1:
+                            postdata += params_body[j]['name'] + '=FUZ' + str(
+                                cnt_body + cnt_query) + 'Z'
+                        else:
+                            postdata += '&' + params_body[j]['name'] + '=FUZ' + str(
+                                cnt_body + cnt_query) + 'Z'
+                for j in range(1, len(params_query) + 1):
+                    if i[-j] == 1:
+                        cnt_query += 1
+                        if cnt_query + cnt_body == 1:
+                            url += params_query[-j]['name'] + '=FUZZ'
+                        elif cnt_query == 1:
+                            url += params_query[-j]['name'] + '=FUZ' + str(
+                                cnt_query + cnt_body) + 'Z'
+                        else:
+                            url += '&' + params[-j]['name'] + '=FUZ' + str(
+                                cnt_query + cnt_body) + 'Z'
+
+                if sum(i) == 1:
+                    f = wfuzz.FuzzSession(url=url, postdata=postdata,
+                                          cookie=convert_cookies_format(
+                                              sess.cookies.get_dict())).get_payload(
+                        rand_dict)
+                else:
+                    payload = [rand_dict] * sum(i)
+                    f = wfuzz.FuzzSession(url=url, postdata=postdata,
+                                          cookie=convert_cookies_format(
+                                              sess.cookies.get_dict())).get_payloads(
+                        payload)
+
+                for r in f.fuzz(hc=[400]):
+                    print(r)
         elif method['method'] == 'put':
             pass
         elif method['method'] == 'delete':
             pass
+        for i in tasks['pages']:
+            fuzzing(i)
 
-    pass
+
+parsed_data = {}
+parsing(parsed_data, data)
+print(parsed_data['pages'][3])
+
+sess = requests.Session()
+
+headers = {'Content-type': 'application/json',
+           'Accept': 'text/plain',
+           'Content-Encoding': 'utf-8'}
+s = sess.post('https://mc-master-0604.msp.ru.corp.acronis.com/api/1/login',
+              data=json.dumps({"username": "Drelb", "password": "Egorpid1"}), verify=False,
+              headers=headers)
+s = sess.get('https://mc-master-0604.msp.ru.corp.acronis.com/bc')
+s = sess.get('https://mc-master-0604.msp.ru.corp.acronis.com/api/task_manager/v2/status')
+
+# tasks fuzzer
+
+fuzzing(parsed_data['pages'][3])
