@@ -1,12 +1,10 @@
 import itertools
 import json
-<<<<<<< HEAD
 import os
-=======
 import requests
 import string
->>>>>>> master
 import random
+from collections import Counter
 
 import requests
 import rstr
@@ -28,13 +26,12 @@ def convert_cookies_format(cookies):
 
 def convert_types(type_dict):
     formatted_dict = {}
-    for key, value in type_dict.values():
+    for key, value in type_dict.items():
         if type(value) == dict:
-            formatted_dict += convert_types(value)
+            formatted_dict = {**formatted_dict, **convert_types(value)}
         else:
-            formatted_dict += {key: value}
+            formatted_dict = {**formatted_dict, **{key: value}}
     return formatted_dict
-
 
 
 def fuzzing(page):
@@ -143,9 +140,9 @@ def fuzzing(tasks, sess, req_types, types):
             for i in params:
                 url = domain + tasks['uri'] + '?'
                 for j in params:
-                    if i != j and not j['required']:
-                        if types[j['type']] == dict:
-                            for key, value in convert_types(types[j['type']]):
+                    if i != j:
+                        if type(types[j['type']]) == dict:
+                            for key, value in convert_types(types[j['type']]).items():
                                 url += key + '=' + rstr.xeger(value) + '&'
                         else:
                             url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
@@ -163,17 +160,34 @@ def fuzzing(tasks, sess, req_types, types):
                 url = domain + tasks['uri'] + '?'
                 postdata = ''
                 for j in params_query:
-                    if types[j['type']] == dict:
-                        for key, value in convert_types(types[j['type']]):
-                            url += key + '=' + rstr.xeger(value) + '&'
-                    else:
-                        url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                    if i != j:
+                        if j['type'] == 'array':
+                            for k in range(random.randint(1, 20)):
+                                if type(types[j['items']]) == dict:
+                                    for key, value in convert_types(types[j['items']]).items():
+                                        url += key + '=' + rstr.xeger(value) + '&'
+                                else:
+                                    url += j['name'] + '=' + rstr.xeger(types[j['items']]) + '&'
+                        else:
+                            if type(types[j['type']]) == dict:
+                                for key, value in convert_types(types[j['type']]).items():
+                                    url += key + '=' + rstr.xeger(value) + '&'
+                            else:
+                                url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
                 for j in params_body:
-                    if types[j['type']] == dict:
-                        for key, value in convert_types(types[j['type']]):
-                            postdata += key + '=' + rstr.xeger(value) + '&'
+                    if j['type'] == 'array':
+                        for k in range(random.randint(1, 20)):
+                            if type(types[j['items']]) == dict:
+                                for key, value in convert_types(types[j['items']]).items():
+                                    postdata += key + '=' + rstr.xeger(value) + '&'
+                            else:
+                                postdata += j['name'] + '=' + rstr.xeger(types[j['items']]) + '&'
                     else:
-                        postdata += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                        if type(types[j['type']]) == dict:
+                            for key, value in convert_types(types[j['type']]).items():
+                                postdata += key + '=' + rstr.xeger(value) + '&'
+                        else:
+                            postdata += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
                 url += i['name'] + '=FUZZ'
                 postdata = postdata[:-1]
                 print(url)
@@ -185,17 +199,34 @@ def fuzzing(tasks, sess, req_types, types):
                 url = domain + tasks['uri'] + '?'
                 postdata = ''
                 for j in params_query:
-                    if types[j['type']] == dict:
-                        for key, value in convert_types(types[j['type']]):
-                            url += key + '=' + rstr.xeger(value) + '&'
+                    if j['type'] == 'array':
+                        for k in range(random.randint(1, 20)):
+                            if type(types[j['items']]) == dict:
+                                for key, value in convert_types(types[j['items']]).items():
+                                    url += key + '=' + rstr.xeger(value) + '&'
+                            else:
+                                url += j['name'] + '=' + rstr.xeger(types[j['items']]) + '&'
                     else:
-                        url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                        if type(types[j['type']]) == dict:
+                            for key, value in convert_types(types[j['type']]).items():
+                                url += key + '=' + rstr.xeger(value) + '&'
+                        else:
+                            url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
                 for j in params_body:
-                    if types[j['type']] == dict:
-                        for key, value in convert_types(types[j['type']]):
-                            postdata += key + '=' + rstr.xeger(value) + '&'
-                    else:
-                        postdata += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                    if i != j:
+                        if j['type'] == 'array':
+                            for k in range(random.randint(1, 20)):
+                                if type(types[j['items']]) == dict:
+                                    for key, value in convert_types(types[j['items']]).items():
+                                        postdata += key + '=' + rstr.xeger(value) + '&'
+                                else:
+                                    postdata += j['name'] + '=' + rstr.xeger(types[j['items']]) + '&'
+                        else:
+                            if type(types[j['type']]) == dict:
+                                for key, value in convert_types(types[j['type']]).items():
+                                    postdata += key + '=' + rstr.xeger(value) + '&'
+                            else:
+                                postdata += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
                 postdata += i['name'] + '=FUZZ'
                 s = wfuzz.FuzzSession(url=url, cookie=convert_cookies_format(
                     sess.cookies.get_dict()), postdata=postdata).get_payload(req_types)
