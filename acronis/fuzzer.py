@@ -1,16 +1,15 @@
-import itertools
 import json
 import os
-import requests
-import string
 import random
-from collections import Counter
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+import string
+import urllib
 
 import requests
 import rstr
+import urllib3
 import wfuzz
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 os.system('node parser.js')
 with open('parsed.json', 'r') as json_file:
@@ -42,19 +41,22 @@ def get_fuzzing(page):
                'Accept': 'text/plain',
                'Content-Encoding': 'utf-8'}
     s.post('https://mc-master-0604.msp.ru.corp.acronis.com/api/1/login',
-           data=json.dumps({"username": 'Drelb', "password": 'Egorpid1'}), verify=False, headers=headers)
+           data=json.dumps({"username": 'Drelb', "password": 'Egorpid1'}), verify=False,
+           headers=headers)
     s.get('https://mc-master-0604.msp.ru.corp.acronis.com/bc', verify=False)
     try:
         page['baseUri']
         for i in range(1000):
             g = s.get('https://mc-master-0604.msp.ru.corp.acronis.com' + page['baseUri'] + '/' +
-                  ''.join(random.choices(string.ascii_letters + string.digits + '_.~-', k=random.randint(1, 100))))
+                      ''.join(random.choices(string.ascii_letters + string.digits + '_.~-',
+                                             k=random.randint(1, 100))))
             if g.status_code != 404:
                 print(g)
     except KeyError:
         for i in range(1000):
             g = s.get('https://mc-master-0604.msp.ru.corp.acronis.com' + page['uri'] + '/' +
-                  ''.join(random.choices(string.ascii_letters + string.digits + '_.~-', k=random.randint(1, 100))))
+                      ''.join(random.choices(string.ascii_letters + string.digits + '_.~-',
+                                             k=random.randint(1, 100))))
             if g.status_code != 404:
                 print(g)
     for i in page['pages']:
@@ -108,7 +110,8 @@ def parsing(parsed_page, page):
                             if tmp['type'][0] == 'object':
                                 tmp_dict['properties'][tmp['name']] = {}
                                 for i in tmp['properties']:
-                                    tmp_dict['properties'][tmp['name']][i] = tmp['properties'][i]['type'][0]
+                                    tmp_dict['properties'][tmp['name']][i] = \
+                                        tmp['properties'][i]['type'][0]
 
                     tmp_method['queryParameters'].append(tmp_dict)
             except KeyError:
@@ -131,11 +134,13 @@ def parsing(parsed_page, page):
                                     tmp_dict['properties'] = {}
                                     for property_tmp in parameter['properties']:
                                         tmp_parameter = parameter['properties'][property_tmp]
-                                        tmp_dict['properties'][tmp_parameter['name']] = tmp_parameter['type'][0]
+                                        tmp_dict['properties'][tmp_parameter['name']] = \
+                                            tmp_parameter['type'][0]
                                         if tmp_parameter['type'][0] == 'object':
                                             tmp_dict['properties'][tmp_parameter['name']] = {}
                                             for i in tmp_parameter['properties']:
-                                                tmp_dict['properties'][tmp_parameter['name']][i] = tmp['properties'][i]['type'][0]
+                                                tmp_dict['properties'][tmp_parameter['name']][i] = \
+                                                    tmp['properties'][i]['type'][0]
                                 tmp_method['body']['properties'].append(tmp_dict)
                             break
                 except KeyError:
@@ -170,24 +175,27 @@ def fuzzing(tasks, sess, req_types, types):
             params = method['queryParameters']
             for i in params:
                 url = domain + tasks['uri'] + '?'
+                uri = ''
                 for j in params:
                     if i != j:
                         if type(types[j['type']]) == dict:
                             for key, value in convert_types(types[j['type']]).items():
-                                url += key + '=' + rstr.xeger(value) + '&'
+                                uri += key + '=' + rstr.xeger(value) + '&'
                         else:
-                            url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
-
-                url += i['name'] + '=FUZZ'
+                            uri += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                uri = urllib.parse.quote(uri, safe='=&~._')
+                url += uri + i['name'] + '=FUZZ'
                 # print(url)
-                s = wfuzz.FuzzSession(url=url, cookie=convert_cookies_format(sess.cookies.get_dict())).get_payload(req_types)
+                s = wfuzz.FuzzSession(url=url,
+                                      cookie=convert_cookies_format(sess.cookies.get_dict()),
+                                      method='GET').get_payload(req_types)
                 for r in s.fuzz(hc=[200, 400]):
                     print(r)
-        elif method['method'] == 'post':
-            print(1)
+        elif method['method'] == 'post' and not tasks['is_changeable']:
             params_body = method['body']['properties']
             params_query = method['queryParameters']
             for i in params_query:
+                uri = ''
                 url = domain + tasks['uri'] + '?'
                 postdata = ''
                 for j in params_query:
@@ -196,15 +204,122 @@ def fuzzing(tasks, sess, req_types, types):
                             for k in range(random.randint(1, 20)):
                                 if type(types[j['items']]) == dict:
                                     for key, value in convert_types(types[j['items']]).items():
-                                        url += key + '=' + rstr.xeger(value) + '&'
+                                        uri += key + '=' + rstr.xeger(value) + '&'
                                 else:
-                                    url += j['name'] + '=' + rstr.xeger(types[j['items']]) + '&'
+                                    uri += j['name'] + '=' + rstr.xeger(types[j['items']]) + '&'
                         else:
                             if type(types[j['type']]) == dict:
                                 for key, value in convert_types(types[j['type']]).items():
-                                    url += key + '=' + rstr.xeger(value) + '&'
+                                    uri += key + '=' + rstr.xeger(value) + '&'
                             else:
-                                url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                                uri += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                for j in params_body:
+                    if j['type'] == 'array':
+                        for k in range(random.randint(1, 20)):
+                            if type(types[j['items']]) == dict:
+                                for key, value in convert_types(types[j['items']]).items():
+                                    postdata += key + '=' + rstr.xeger(value) + '&'
+                            else:
+                                postdata += j['name'] + '=' + rstr.xeger(types[j['items']]) + '&'
+                        continue
+                    if j['type'] == 'object':
+                        for key, value in j['properties'].items():
+                            if type(types[value]) == dict:
+                                for key1, value1 in convert_types(types[value]).items():
+                                    postdata += key1 + '=' + rstr.xeger(value1) + '&'
+                            else:
+                                postdata += key + '=' + rstr.xeger(types[value]) + '&'
+                        continue
+
+                    if type(types[j['type']]) == dict:
+                        for key, value in convert_types(types[j['type']]).items():
+                            postdata += key + '=' + rstr.xeger(value) + '&'
+                    else:
+                        postdata += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                uri = urllib.parse.quote(uri, safe='=&~._')
+                url += uri + i['name'] + '=FUZZ'
+                postdata = postdata[:-1]
+                s = wfuzz.FuzzSession(url=url, cookie=convert_cookies_format(
+                    sess.cookies.get_dict()), postdata=postdata, method='POST').get_payload(
+                    req_types)
+                for r in s.fuzz(hc=[200, 400]):
+                    print(r)
+            for i in params_body:
+                uri = ''
+                url = domain + tasks['uri'] + '?'
+                postdata = ''
+                for j in params_query:
+                    if j['type'] == 'array':
+                        for k in range(random.randint(1, 20)):
+                            if type(types[j['items']]) == dict:
+                                for key, value in convert_types(types[j['items']]).items():
+                                    uri += key + '=' + rstr.xeger(value) + '&'
+                            else:
+                                uri += j['name'] + '=' + rstr.xeger(types[j['items']]) + '&'
+                    else:
+                        if type(types[j['type']]) == dict:
+                            for key, value in convert_types(types[j['type']]).items():
+                                uri += key + '=' + rstr.xeger(value) + '&'
+                        else:
+                            uri += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                for j in params_body:
+                    if i != j:
+                        if j['type'] == 'array':
+                            for k in range(random.randint(1, 20)):
+                                if type(types[j['items']]) == dict:
+                                    for key, value in convert_types(types[j['items']]).items():
+                                        postdata += key + '=' + rstr.xeger(value) + '&'
+                                else:
+                                    postdata += j['name'] + '=' + rstr.xeger(
+                                        types[j['items']]) + '&'
+                            continue
+                        if j['type'] == 'object':
+                            for key, value in j['properties'].items():
+                                if type(types[value]) == dict:
+                                    for key1, value1 in convert_types(types[value]).items():
+                                        postdata += key1 + '=' + rstr.xeger(value1) + '&'
+                                else:
+                                    postdata += key + '=' + rstr.xeger(types[value]) + '&'
+                            continue
+
+                        if type(types[j['type']]) == dict:
+                            for key, value in convert_types(types[j['type']]).items():
+                                postdata += key + '=' + rstr.xeger(value) + '&'
+                        else:
+                            postdata += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                uri = urllib.parse.quote(uri, safe='=&~._')
+                url += uri
+                postdata += i['name'] + '=FUZZ'
+                s = wfuzz.FuzzSession(url=url, cookie=convert_cookies_format(
+                    sess.cookies.get_dict()), postdata=postdata, method='POST').get_payload(
+                    req_types)
+                for r in s.fuzz():
+                    print(r)
+        elif method['method'] == 'put':
+            try:
+                params_body = method['body']['properties']
+            except KeyError:
+                params_body = {}
+            params_query = method['queryParameters']
+            for i in params_query:
+                uri = ''
+                url = domain + tasks['uri'] + '?'
+                postdata = ''
+                for j in params_query:
+                    if i != j:
+                        if j['type'] == 'array':
+                            for k in range(random.randint(1, 20)):
+                                if type(types[j['items']]) == dict:
+                                    for key, value in convert_types(types[j['items']]).items():
+                                        uri += key + '=' + rstr.xeger(value) + '&'
+                                else:
+                                    uri += j['name'] + '=' + rstr.xeger(types[j['items']]) + '&'
+                        else:
+                            if type(types[j['type']]) == dict:
+                                for key, value in convert_types(types[j['type']]).items():
+                                    uri += key + '=' + rstr.xeger(value) + '&'
+                            else:
+                                uri += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
                 for j in params_body:
                     print(j)
                     if j['type'] == 'array':
@@ -221,21 +336,24 @@ def fuzzing(tasks, sess, req_types, types):
                                 for key1, value1 in convert_types(types[value]).items():
                                     postdata += key1 + '=' + rstr.xeger(value1) + '&'
                             else:
-                                postdata += key['name'] + '=' + rstr.xeger(types[value]) + '&'
+                                postdata += key + '=' + rstr.xeger(types[value]) + '&'
+                        continue
 
                     if type(types[j['type']]) == dict:
                         for key, value in convert_types(types[j['type']]).items():
                             postdata += key + '=' + rstr.xeger(value) + '&'
                     else:
                         postdata += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
-                url += i['name'] + '=FUZZ'
+                uri = urllib.parse.quote(uri, safe='=&~._')
+                url += uri + i['name'] + '=FUZZ'
                 postdata = postdata[:-1]
-                print(url)
                 s = wfuzz.FuzzSession(url=url, cookie=convert_cookies_format(
-                    sess.cookies.get_dict()), postdata=postdata).get_payload(req_types)
+                    sess.cookies.get_dict()), postdata=postdata, method='POST').get_payload(
+                    req_types)
                 for r in s.fuzz(hc=[200, 400]):
                     print(r)
             for i in params_body:
+                uri = ''
                 url = domain + tasks['uri'] + '?'
                 postdata = ''
                 for j in params_query:
@@ -243,15 +361,15 @@ def fuzzing(tasks, sess, req_types, types):
                         for k in range(random.randint(1, 20)):
                             if type(types[j['items']]) == dict:
                                 for key, value in convert_types(types[j['items']]).items():
-                                    url += key + '=' + rstr.xeger(value) + '&'
+                                    uri += key + '=' + rstr.xeger(value) + '&'
                             else:
-                                url += j['name'] + '=' + rstr.xeger(types[j['items']]) + '&'
+                                uri += j['name'] + '=' + rstr.xeger(types[j['items']]) + '&'
                     else:
                         if type(types[j['type']]) == dict:
                             for key, value in convert_types(types[j['type']]).items():
-                                url += key + '=' + rstr.xeger(value) + '&'
+                                uri += key + '=' + rstr.xeger(value) + '&'
                         else:
-                            url += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                            uri += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
                 for j in params_body:
                     if i != j:
                         if j['type'] == 'array':
@@ -260,20 +378,31 @@ def fuzzing(tasks, sess, req_types, types):
                                     for key, value in convert_types(types[j['items']]).items():
                                         postdata += key + '=' + rstr.xeger(value) + '&'
                                 else:
-                                    postdata += j['name'] + '=' + rstr.xeger(types[j['items']]) + '&'
+                                    postdata += j['name'] + '=' + rstr.xeger(
+                                        types[j['items']]) + '&'
+                            continue
+                        if j['type'] == 'object':
+                            for key, value in j['properties'].items():
+                                if type(types[value]) == dict:
+                                    for key1, value1 in convert_types(types[value]).items():
+                                        postdata += key1 + '=' + rstr.xeger(value1) + '&'
+                                else:
+                                    postdata += key + '=' + rstr.xeger(types[value]) + '&'
+                            continue
+
+                        if type(types[j['type']]) == dict:
+                            for key, value in convert_types(types[j['type']]).items():
+                                postdata += key + '=' + rstr.xeger(value) + '&'
                         else:
-                            if type(types[j['type']]) == dict:
-                                for key, value in convert_types(types[j['type']]).items():
-                                    postdata += key + '=' + rstr.xeger(value) + '&'
-                            else:
-                                postdata += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                            postdata += j['name'] + '=' + rstr.xeger(types[j['type']]) + '&'
+                uri = urllib.parse.quote(uri, safe='=&~._')
+                url += uri
                 postdata += i['name'] + '=FUZZ'
                 s = wfuzz.FuzzSession(url=url, cookie=convert_cookies_format(
-                    sess.cookies.get_dict()), postdata=postdata).get_payload(req_types)
+                    sess.cookies.get_dict()), postdata=postdata, method='POST').get_payload(
+                    req_types)
                 for r in s.fuzz():
-                    print(r.history)
-        elif method['method'] == 'put':
-            pass
+                    print(r)
         elif method['method'] == 'delete':
             pass
         for i in tasks['pages']:
@@ -282,7 +411,6 @@ def fuzzing(tasks, sess, req_types, types):
 
 parsed_data = {}
 parsing(parsed_data, data)
-print(parsed_data['pages'][3])
 
 sess = requests.Session()
 
@@ -332,52 +460,56 @@ types = {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-
          'linkedResource': {'id': r'^[A-Za-z0-9_\.~-]{1,64}$',
                             'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
                             'name': r'^[A-Za-z0-9_\.~-]{1,256}$'},
-         'workflowDefinition': {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
-                                'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                                'tags': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                                'progress': {'total': r'^(-)?\d+$',
-                                             'current': r'^(-)?\d+$'}},
+         'workflowDefinition': {
+             'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+             'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
+             'tags': r'^[A-Za-z0-9_\.~-]{1,64}$',
+             'progress': {'total': r'^(-)?\d+$',
+                          'current': r'^(-)?\d+$'}},
          'taskPriority': r'(low|belowNormal|normal|aboveNormal|high)',
-         'taskDefinition': {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
-                            'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                            'queue': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                            'priority': r'(low|belowNormal|normal|aboveNormal|high)',
-                            'heartBeatInterval': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
-                            'queueTimeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
-                            'ackTimeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
-                            'execTimeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
-                            'lifeTime': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
-                            'maxAssignCount': r'^(-)?\d+$',
-                            'cancellable': r'(1|0)',
-                            'startedByUser': r'^[A-Za-z0-9_\.~-]{1,256}$',
-                            'policy': {'id': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                                       'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                                       'name': r'^[A-Za-z0-9_\.~-]{1,256}$'},
-                            'resource': {'id': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                                         'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                                         'name': r'^[A-Za-z0-9_\.~-]{1,256}$'},
-                            'tags': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                            'affinity': {'agentId': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                                         'clusterId': r'^[A-Za-z0-9_\.~-]{1,64}$'},
-                            'argument': r'^[A-Za-z0-9_\.~-]+$',
-                            'workflowId': r'^(-)?\d+$',
-                            'context': r'^[A-Za-z0-9_\.~-]+$'},
-         'activityDefinition': {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
-                                'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                                'taskId': r'^(-)?\d+$',
-                                'parentActivityId': r'^(-)?\d+$',
-                                'progress': {'total': r'^(-)?\d+$',
-                                             'current': r'^(-)?\d+$'},
-                                'tags': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                                'resource': {'id': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                                             'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                                             'name': r'^[A-Za-z0-9_\.~-]{1,256}$'},
-                                'state': r'(enqueued|assigned|started|paused|completed)',
-                                'details': r'^[A-Za-z0-9_\.~-]+$'},
-         'blockerDefinition': {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
-                               'taskId': r'^(-)?\d+$',
-                               'activityId': r'^(-)?\d+$',
-                               'issue': r'^[A-Za-z0-9_\.~-]+$'},
+         'taskDefinition': {
+             'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+             'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
+             'queue': r'^[A-Za-z0-9_\.~-]{1,64}$',
+             'priority': r'(low|belowNormal|normal|aboveNormal|high)',
+             'heartBeatInterval': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
+             'queueTimeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
+             'ackTimeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
+             'execTimeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
+             'lifeTime': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
+             'maxAssignCount': r'^(-)?\d+$',
+             'cancellable': r'(1|0)',
+             'startedByUser': r'^[A-Za-z0-9_\.~-]{1,256}$',
+             'policy': {'id': r'^[A-Za-z0-9_\.~-]{1,64}$',
+                        'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
+                        'name': r'^[A-Za-z0-9_\.~-]{1,256}$'},
+             'resource': {'id': r'^[A-Za-z0-9_\.~-]{1,64}$',
+                          'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
+                          'name': r'^[A-Za-z0-9_\.~-]{1,256}$'},
+             'tags': r'^[A-Za-z0-9_\.~-]{1,64}$',
+             'affinity': {'agentId': r'^[A-Za-z0-9_\.~-]{1,64}$',
+                          'clusterId': r'^[A-Za-z0-9_\.~-]{1,64}$'},
+             'argument': r'^[A-Za-z0-9_\.~-]+$',
+             'workflowId': r'^(-)?\d+$',
+             'context': r'^[A-Za-z0-9_\.~-]+$'},
+         'activityDefinition': {
+             'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+             'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
+             'taskId': r'^(-)?\d+$',
+             'parentActivityId': r'^(-)?\d+$',
+             'progress': {'total': r'^(-)?\d+$',
+                          'current': r'^(-)?\d+$'},
+             'tags': r'^[A-Za-z0-9_\.~-]{1,64}$',
+             'resource': {'id': r'^[A-Za-z0-9_\.~-]{1,64}$',
+                          'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
+                          'name': r'^[A-Za-z0-9_\.~-]{1,256}$'},
+             'state': r'(enqueued|assigned|started|paused|completed)',
+             'details': r'^[A-Za-z0-9_\.~-]+$'},
+         'blockerDefinition': {
+             'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+             'taskId': r'^(-)?\d+$',
+             'activityId': r'^(-)?\d+$',
+             'issue': r'^[A-Za-z0-9_\.~-]+$'},
          'eventDefinition': {'code': r'^(-)?\d+$',
                              'taskId': r'^(-)?\d+$',
                              'activityId': r'^(-)?\d+$',
@@ -392,8 +524,8 @@ types = {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-
                           'timeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)s)?$',
                           'qos': r'^(-)?\d+$'},
          'taskHeartbeat': {'taskId': r'^(-)?\d+$'}
-}
+         }
 
-fuzzing(parsed_data['pages'][3], sess, req_types, types)
+fuzzing(parsed_data['pages'][2], sess, req_types, types)
 
 get_fuzzing(parsed_data)
