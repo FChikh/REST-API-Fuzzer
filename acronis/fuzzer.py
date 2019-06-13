@@ -64,11 +64,22 @@ def parsing(parsed_page, page):
             tmp_method['queryParameters'] = []
             try:
                 for queryParameter in method['queryParameters']:
-                    tmp_dict = {'name': method['queryParameters'][queryParameter]['name'],
-                                'type': method['queryParameters'][queryParameter]['type'][0],
-                                'required': method['queryParameters'][queryParameter]['required']}
+                    parameter = method['queryParameters'][queryParameter]
+                    tmp_dict = {'name': parameter['name'],
+                                'type': parameter['type'][0],
+                                'required': parameter['required']}
                     if tmp_dict['type'] == 'array':
-                        tmp_dict['items'] = method['queryParameters'][queryParameter]['items']
+                        tmp_dict['items'] = parameter['items']
+                    if tmp_dict['type'] == 'object':
+                        tmp_dict['properties'] = {}
+                        for tmp_property in parameter['properties']:
+                            tmp = parameter['properties'][tmp_property]
+                            tmp_dict['properties'][tmp['name']] = [tmp['type']]
+                            if tmp['type'] == 'object':
+                                tmp_dict['properties'][tmp['name']] = []
+                                for i in tmp['properties']:
+                                    tmp_dict['properties'][tmp['name']].append(i)
+
                     tmp_method['queryParameters'].append(tmp_dict)
             except KeyError:
                 pass
@@ -78,12 +89,22 @@ def parsing(parsed_page, page):
                     for type in data['types']:
                         tmp = type[list(type.keys())[0]]
                         if tmp['name'] == tmp_method['body']['name']:
-                            for parameter in tmp['properties']:
-                                tmp_dict = {'name': tmp['properties'][parameter]['name'],
-                                            'type': tmp['properties'][parameter]['type'][0],
-                                            'required': tmp['properties'][parameter]['required']}
+                            for tmp_property in tmp['properties']:
+                                parameter = tmp['properties'][tmp_property]
+                                tmp_dict = {'name': parameter['name'],
+                                            'type': parameter['type'][0],
+                                            'required': parameter['required']}
                                 if tmp_dict['type'] == 'array':
-                                    tmp_dict['items'] = tmp['properties'][parameter]['items']
+                                    tmp_dict['items'] = parameter['items']
+                                if tmp_dict['type'] == 'object':
+                                    tmp_dict['properties'] = {}
+                                    for property_tmp in parameter['properties']:
+                                        tmp_parameter = parameter['properties'][property_tmp]
+                                        tmp_dict['properties'][tmp_parameter['name']] = [tmp_parameter['type']]
+                                        if tmp_parameter['type'] == 'object':
+                                            tmp_dict['properties'][tmp_parameter['name']] = []
+                                            for i in tmp_parameter['properties']:
+                                                tmp_dict['properties'][tmp_parameter['name']].append(i)
                                 tmp_method['body']['properties'].append(tmp_dict)
                             break
                 except KeyError:
