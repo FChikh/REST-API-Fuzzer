@@ -210,7 +210,7 @@ def fuzzing(tasks, sess, req_types, types):
                                 postdata += j['name'] + '=' + rstr.xeger(types[j['items']]) + '&'
                         continue
                     if j['type'] == 'object':
-                        for key, value in j['properties']:
+                        for key, value in j['properties'].items():
                             if type(types[value]) == dict:
                                 for key1, value1 in convert_types(types[value]).items():
                                     postdata += key1 + '=' + rstr.xeger(value1) + '&'
