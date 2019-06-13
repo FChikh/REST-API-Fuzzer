@@ -5,6 +5,8 @@ import requests
 import string
 import random
 from collections import Counter
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 import requests
 import rstr
@@ -34,7 +36,7 @@ def convert_types(type_dict):
     return formatted_dict
 
 
-def fuzzing(page):
+def get_fuzzing(page):
     s = requests.Session()
     headers = {'Content-type': 'application/json',
                'Accept': 'text/plain',
@@ -45,14 +47,18 @@ def fuzzing(page):
     try:
         page['baseUri']
         for i in range(1000):
-            s.get('https://mc-master-0604.msp.ru.corp.acronis.com' + page['baseUri'] + '/' +
+            g = s.get('https://mc-master-0604.msp.ru.corp.acronis.com' + page['baseUri'] + '/' +
                   ''.join(random.choices(string.ascii_letters + string.digits + '_.~-', k=random.randint(1, 100))))
+            if g.status_code != 404:
+                print(g)
     except KeyError:
         for i in range(1000):
-            s.get('https://mc-master-0604.msp.ru.corp.acronis.com' + page['uri'] + '/' +
+            g = s.get('https://mc-master-0604.msp.ru.corp.acronis.com' + page['uri'] + '/' +
                   ''.join(random.choices(string.ascii_letters + string.digits + '_.~-', k=random.randint(1, 100))))
+            if g.status_code != 404:
+                print(g)
     for i in page['pages']:
-        fuzzing(i)
+        get_fuzzing(i)
 
 
 def parsing(parsed_page, page):
@@ -98,11 +104,11 @@ def parsing(parsed_page, page):
                         tmp_dict['properties'] = {}
                         for tmp_property in parameter['properties']:
                             tmp = parameter['properties'][tmp_property]
-                            tmp_dict['properties'][tmp['name']] = [tmp['type']]
-                            if tmp['type'] == 'object':
-                                tmp_dict['properties'][tmp['name']] = []
+                            tmp_dict['properties'][tmp['name']] = tmp['type'][0]
+                            if tmp['type'][0] == 'object':
+                                tmp_dict['properties'][tmp['name']] = {}
                                 for i in tmp['properties']:
-                                    tmp_dict['properties'][tmp['name']].append(i)
+                                    tmp_dict['properties'][tmp['name']][i] = tmp['properties'][i]['type'][0]
 
                     tmp_method['queryParameters'].append(tmp_dict)
             except KeyError:
@@ -125,11 +131,11 @@ def parsing(parsed_page, page):
                                     tmp_dict['properties'] = {}
                                     for property_tmp in parameter['properties']:
                                         tmp_parameter = parameter['properties'][property_tmp]
-                                        tmp_dict['properties'][tmp_parameter['name']] = [tmp_parameter['type']]
-                                        if tmp_parameter['type'] == 'object':
-                                            tmp_dict['properties'][tmp_parameter['name']] = []
+                                        tmp_dict['properties'][tmp_parameter['name']] = tmp_parameter['type'][0]
+                                        if tmp_parameter['type'][0] == 'object':
+                                            tmp_dict['properties'][tmp_parameter['name']] = {}
                                             for i in tmp_parameter['properties']:
-                                                tmp_dict['properties'][tmp_parameter['name']].append(i)
+                                                tmp_dict['properties'][tmp_parameter['name']][i] = tmp['properties'][i]['type'][0]
                                 tmp_method['body']['properties'].append(tmp_dict)
                             break
                 except KeyError:
@@ -389,3 +395,5 @@ types = {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-
 }
 
 fuzzing(parsed_data['pages'][3], sess, req_types, types)
+
+get_fuzzing(parsed_data)
