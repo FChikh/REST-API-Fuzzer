@@ -22,11 +22,11 @@ def fuzzing(page):
         page['baseUri']
         for i in range(1000):
             s.get('https://mc-master-0604.msp.ru.corp.acronis.com' + page['baseUri'] + '/' +
-                  ''.join(random.choises(string.ascii_letters + string.digits + '_.~-', k=random.randint(100))))
+                  ''.join(random.choices(string.ascii_letters + string.digits + '_.~-', k=random.randint(1, 100))))
     except KeyError:
         for i in range(1000):
             s.get('https://mc-master-0604.msp.ru.corp.acronis.com' + page['uri'] + '/' +
-                  ''.join(random.choises(string.ascii_letters + string.digits + '_.~-', k=random.randint(100))))
+                  ''.join(random.choices(string.ascii_letters + string.digits + '_.~-', k=random.randint(1, 100))))
     for i in page['pages']:
         fuzzing(i)
 
@@ -67,6 +67,8 @@ def parsing(parsed_page, page):
                     tmp_dict = {'name': method['queryParameters'][queryParameter]['name'],
                                 'type': method['queryParameters'][queryParameter]['type'][0],
                                 'required': method['queryParameters'][queryParameter]['required']}
+                    if tmp_dict['type'] == 'array':
+                        tmp_dict['items'] = method['queryParameters'][queryParameter]['items']
                     tmp_method['queryParameters'].append(tmp_dict)
             except KeyError:
                 pass
@@ -80,6 +82,8 @@ def parsing(parsed_page, page):
                                 tmp_dict = {'name': tmp['properties'][parameter]['name'],
                                             'type': tmp['properties'][parameter]['type'][0],
                                             'required': tmp['properties'][parameter]['required']}
+                                if tmp_dict['type'] == 'array':
+                                    tmp_dict['items'] = tmp['properties'][parameter]['items']
                                 tmp_method['body']['properties'].append(tmp_dict)
                             break
                 except KeyError:
@@ -200,4 +204,4 @@ types = {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-
 }
 
 
-fuzzing(parsed_data)
+#fuzzing(parsed_data)
