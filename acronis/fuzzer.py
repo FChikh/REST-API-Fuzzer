@@ -562,7 +562,6 @@ def fuzzing(tasks):
             for r in fuzz_sess.fuzz():
                 print(r)
         elif method['method'] == 'delete':
-            print('delete')
             url = domain + tasks['uri'].replace(tasks['relativeUri'], '/FUZZ')
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(
