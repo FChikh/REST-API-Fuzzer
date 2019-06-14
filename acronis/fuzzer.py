@@ -331,7 +331,7 @@ def fuzzing(tasks):
             for i in params:
                 print(i)
                 uri = urllib.parse.quote(parse_params(params, i), safe='=&~._')
-                url = domain + tasks['uri'] + '?' + uri
+                url = domain + tasks['uri'] + '?' + uri + i['name'] + '=FUZZ'
                 # print(url)
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
