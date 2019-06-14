@@ -10,7 +10,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 import requests
 import rstr
-#import wfuzz
+import wfuzz
 
 os.system('node parser.js')
 with open('parsed.json', 'r') as json_file:
@@ -68,6 +68,7 @@ def parsing(parsed_page, page):
         parsed_page['type'] = None
     except KeyError:
         try:
+            parsed_page['relativeUri'] = page['relativeUri']
             parsed_page['uri'] = page['absoluteUri']
             if parsed_page['uri'][-1] == '}':
                 parsed_page['is_changeable'] = True
