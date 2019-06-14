@@ -600,11 +600,6 @@ session = sess.post(
     verify=False,
     headers=headers)
 session = sess.get('https://resumecreator.ru/bc')
-session = sess.get(
-<<<<<<< HEAD
-    'https://resumecreator.ru/api/task_manager/v2/status')
+session = sess.get('https://resumecreator.ru/api/task_manager/v2/status')
 print(1)
-=======
-    'https://mc-master-0604.msp.ru.corp.acronis.com/api/task_manager/v2/status')
->>>>>>> fba239525d88803d4efa39130b6b93b052fc6c0e
 fuzzing(parsed_data['pages'][2])
