@@ -8,7 +8,6 @@ import requests
 import rstr
 import urllib3
 import wfuzz
-
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 domain = 'https://mc-master-0604.msp.ru.corp.acronis.com'
@@ -227,10 +226,10 @@ def get_fuzzing(page):
 
 
 def parsing(parsed_page, page):
-    parsed_page['is_changeable'] = False
-    parsed_page['type'] = None
     try:
         parsed_page['baseUri'] = page['baseUri']
+        parsed_page['is_changeable'] = False
+        parsed_page['type'] = None
     except KeyError:
         try:
             parsed_page['uri'] = page['absoluteUri']
@@ -335,7 +334,8 @@ def parsing(parsed_page, page):
     parsed_page['pages'] = []
     try:
         for resource in page['resources']:
-            parsed_page['pages'].append({})
+            parsed_page['pages'].append({'type': parsed_page['type'],
+                                         'is_changeable': parsed_page['is_changeable']});
             parsing(parsed_page['pages'][-1], resource)
     except KeyError:
         pass
