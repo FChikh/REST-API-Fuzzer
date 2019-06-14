@@ -11,27 +11,8 @@ import wfuzz
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-os.system('node parser.js')
-with open('parsed.json', 'r') as json_file:
-    data = json.load(json_file)
-
 domain = 'https://mc-master-0604.msp.ru.corp.acronis.com'
 
-sess = requests.Session()
-
-headers = {'Content-type': 'application/json',
-           'Accept': 'text/plain',
-           'Content-Encoding': 'utf-8'}
-session = sess.post(
-    'https://mc-master-0604.msp.ru.corp.acronis.com/api/1/login',
-    data=json.dumps({"username": "Drelb", "password": "Egorpid1"}),
-    verify=False,
-    headers=headers)
-session = sess.get('https://mc-master-0604.msp.ru.corp.acronis.com/bc')
-session = sess.get(
-    'https://mc-master-0604.msp.ru.corp.acronis.com/api/task_manager/v2/status')
-
-# tasks fuzzer
 req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
              random.randint(10 ** 50, 10 ** 100),
              -random.randint(10 ** 50, 10 ** 100),
@@ -153,6 +134,43 @@ types = {
                      'qos': r'^(-)?\d+$'},
     'taskHeartbeat': {'taskId': r'^(-)?\d+$'}
 }
+
+
+def parse_params(params, fuzz=''):
+    result = ''
+    for item in params:
+        if item != fuzz:
+            if item['type'] == 'array':
+                for _ in range(random.randint(1, 20)):
+                    if type(types[item['items']]) == dict:
+                        for key, value in convert_types(
+                                types[item['items']]).items():
+                            result += key + '=' + rstr.xeger(
+                                value) + '&'
+                    else:
+                        result += item['name'] + '=' + rstr.xeger(
+                            types[item['items']]) + '&'
+                continue
+            if item['type'] == 'object':
+                for key, value in item['properties'].items():
+                    if type(types[value]) == dict:
+                        for key1, value1 in convert_types(
+                                types[value]).items():
+                            result += key1 + '=' + rstr.xeger(
+                                value1) + '&'
+                    else:
+                        result += key + '=' + rstr.xeger(
+                            types[value]) + '&'
+                continue
+
+            if type(types[item['type']]) == dict:
+                for key, value in convert_types(
+                        types[item['type']]).items():
+                    result += key + '=' + rstr.xeger(value) + '&'
+            else:
+                result += item['name'] + '=' + rstr.xeger(
+                    types[item['type']]) + '&'
+    return result
 
 
 def convert_cookies_format(cookies):
@@ -328,19 +346,9 @@ def fuzzing(tasks):
         if method['method'] == 'get' and not tasks['is_changeable']:
             params = method['queryParameters']
             for i in params:
-                url = domain + tasks['uri'] + '?'
-                uri = ''
-                for j in params:
-                    if i != j:
-                        if type(types[j['type']]) == dict:
-                            for key, value in convert_types(
-                                    types[j['type']]).items():
-                                uri += key + '=' + rstr.xeger(value) + '&'
-                        else:
-                            uri += j['name'] + '=' + rstr.xeger(
-                                types[j['type']]) + '&'
-                uri = urllib.parse.quote(uri, safe='=&~._')
-                url += uri + i['name'] + '=FUZZ'
+                print(i)
+                uri = urllib.parse.quote(parse_params(params, i), safe='=&~._')
+                url = domain + tasks['uri'] + '?' + uri
                 # print(url)
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
@@ -349,67 +357,17 @@ def fuzzing(tasks):
                     req_types)
                 for r in fuzz_sess.fuzz(hc=[200, 400]):
                     print(r)
+        elif method['method'] == 'get' and tasks['is_changeable']:
+            pass
         elif method['method'] == 'post' and not tasks['is_changeable']:
             params_body = method['body']['properties']
             params_query = method['queryParameters']
             for i in params_query:
-                uri = ''
-                url = domain + tasks['uri'] + '?'
-                postdata = ''
-                for j in params_query:
-                    if i != j:
-                        if j['type'] == 'array':
-                            for _ in range(random.randint(1, 20)):
-                                if type(types[j['items']]) == dict:
-                                    for key, value in convert_types(
-                                            types[j['items']]).items():
-                                        uri += key + '=' + rstr.xeger(
-                                            value) + '&'
-                                else:
-                                    uri += j['name'] + '=' + rstr.xeger(
-                                        types[j['items']]) + '&'
-                        else:
-                            if type(types[j['type']]) == dict:
-                                for key, value in convert_types(
-                                        types[j['type']]).items():
-                                    uri += key + '=' + rstr.xeger(value) + '&'
-                            else:
-                                uri += j['name'] + '=' + rstr.xeger(
-                                    types[j['type']]) + '&'
-                for j in params_body:
-                    if j['type'] == 'array':
-                        for _ in range(random.randint(1, 20)):
-                            if type(types[j['items']]) == dict:
-                                for key, value in convert_types(
-                                        types[j['items']]).items():
-                                    postdata += key + '=' + rstr.xeger(
-                                        value) + '&'
-                            else:
-                                postdata += j['name'] + '=' + rstr.xeger(
-                                    types[j['items']]) + '&'
-                        continue
-                    if j['type'] == 'object':
-                        for key, value in j['properties'].items():
-                            if type(types[value]) == dict:
-                                for key1, value1 in convert_types(
-                                        types[value]).items():
-                                    postdata += key1 + '=' + rstr.xeger(
-                                        value1) + '&'
-                            else:
-                                postdata += key + '=' + rstr.xeger(
-                                    types[value]) + '&'
-                        continue
-
-                    if type(types[j['type']]) == dict:
-                        for key, value in convert_types(
-                                types[j['type']]).items():
-                            postdata += key + '=' + rstr.xeger(value) + '&'
-                    else:
-                        postdata += j['name'] + '=' + rstr.xeger(
-                            types[j['type']]) + '&'
-                uri = urllib.parse.quote(uri, safe='=&~._')
-                url += uri + i['name'] + '=FUZZ'
-                postdata = postdata[:-1]
+                print(i)
+                uri = urllib.parse.quote(parse_params(params_query, i),
+                                         safe='=&~.')
+                url = domain + tasks['uri'] + '?' + uri + i['name'] + '=FUZZ'
+                postdata = parse_params(params_body)[:-1]
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
                                                   sess.cookies.get_dict()),
@@ -419,62 +377,11 @@ def fuzzing(tasks):
                 for r in fuzz_sess.fuzz(hc=[200, 400]):
                     print(r)
             for i in params_body:
-                uri = ''
-                url = domain + tasks['uri'] + '?'
-                postdata = ''
-                for j in params_query:
-                    if j['type'] == 'array':
-                        for _ in range(random.randint(1, 20)):
-                            if type(types[j['items']]) == dict:
-                                for key, value in convert_types(
-                                        types[j['items']]).items():
-                                    uri += key + '=' + rstr.xeger(value) + '&'
-                            else:
-                                uri += j['name'] + '=' + rstr.xeger(
-                                    types[j['items']]) + '&'
-                    else:
-                        if type(types[j['type']]) == dict:
-                            for key, value in convert_types(
-                                    types[j['type']]).items():
-                                uri += key + '=' + rstr.xeger(value) + '&'
-                        else:
-                            uri += j['name'] + '=' + rstr.xeger(
-                                types[j['type']]) + '&'
-                for j in params_body:
-                    if i != j:
-                        if j['type'] == 'array':
-                            for _ in range(random.randint(1, 20)):
-                                if type(types[j['items']]) == dict:
-                                    for key, value in convert_types(
-                                            types[j['items']]).items():
-                                        postdata += key + '=' + rstr.xeger(
-                                            value) + '&'
-                                else:
-                                    postdata += j['name'] + '=' + rstr.xeger(
-                                        types[j['items']]) + '&'
-                            continue
-                        if j['type'] == 'object':
-                            for key, value in j['properties'].items():
-                                if type(types[value]) == dict:
-                                    for key1, value1 in convert_types(
-                                            types[value]).items():
-                                        postdata += key1 + '=' + rstr.xeger(
-                                            value1) + '&'
-                                else:
-                                    postdata += key + '=' + rstr.xeger(
-                                        types[value]) + '&'
-                            continue
-
-                        if type(types[j['type']]) == dict:
-                            for key, value in convert_types(
-                                    types[j['type']]).items():
-                                postdata += key + '=' + rstr.xeger(value) + '&'
-                        else:
-                            postdata += j['name'] + '=' + rstr.xeger(
-                                types[j['type']]) + '&'
-                uri = urllib.parse.quote(uri, safe='=&~._')
-                url += uri
-                postdata += i['name'] + '=FUZZ'
+                print(i)
+                uri = urllib.parse.quote(parse_params(params_query),
+                                         safe='=&~.')
+                url = domain + tasks['uri'] + '?' + uri
+                postdata = parse_params(params_body, i) + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
                                                   sess.cookies.get_dict()),
@@ -483,71 +390,19 @@ def fuzzing(tasks):
                     req_types)
                 for r in fuzz_sess.fuzz():
                     print(r)
-        elif method['method'] == 'put':
+        elif method['method'] == 'post' and tasks['is_changeable']:
+            pass
+        elif method['method'] == 'put' and not tasks['is_changeable']:
             try:
                 params_body = method['body']['properties']
             except KeyError:
                 params_body = {}
             params_query = method['queryParameters']
             for i in params_query:
-                uri = ''
-                url = domain + tasks['uri'] + '?'
-                postdata = ''
-                for j in params_query:
-                    if i != j:
-                        if j['type'] == 'array':
-                            for _ in range(random.randint(1, 20)):
-                                if type(types[j['items']]) == dict:
-                                    for key, value in convert_types(
-                                            types[j['items']]).items():
-                                        uri += key + '=' + rstr.xeger(
-                                            value) + '&'
-                                else:
-                                    uri += j['name'] + '=' + rstr.xeger(
-                                        types[j['items']]) + '&'
-                        else:
-                            if type(types[j['type']]) == dict:
-                                for key, value in convert_types(
-                                        types[j['type']]).items():
-                                    uri += key + '=' + rstr.xeger(value) + '&'
-                            else:
-                                uri += j['name'] + '=' + rstr.xeger(
-                                    types[j['type']]) + '&'
-                for j in params_body:
-                    print(j)
-                    if j['type'] == 'array':
-                        for _ in range(random.randint(1, 20)):
-                            if type(types[j['items']]) == dict:
-                                for key, value in convert_types(
-                                        types[j['items']]).items():
-                                    postdata += key + '=' + rstr.xeger(
-                                        value) + '&'
-                            else:
-                                postdata += j['name'] + '=' + rstr.xeger(
-                                    types[j['items']]) + '&'
-                        continue
-                    if j['type'] == 'object':
-                        for key, value in j['properties'].items():
-                            if type(types[value]) == dict:
-                                for key1, value1 in convert_types(
-                                        types[value]).items():
-                                    postdata += key1 + '=' + rstr.xeger(
-                                        value1) + '&'
-                            else:
-                                postdata += key + '=' + rstr.xeger(
-                                    types[value]) + '&'
-                        continue
-
-                    if type(types[j['type']]) == dict:
-                        for key, value in convert_types(
-                                types[j['type']]).items():
-                            postdata += key + '=' + rstr.xeger(value) + '&'
-                    else:
-                        postdata += j['name'] + '=' + rstr.xeger(
-                            types[j['type']]) + '&'
-                uri = urllib.parse.quote(uri, safe='=&~._')
-                url += uri + i['name'] + '=FUZZ'
-                postdata = postdata[:-1]
+                uri = urllib.parse.quote(parse_params(params_query, i),
+                                         safe='=&~.')
+                url = domain + tasks['uri'] + '?' + uri
+                postdata = parse_params(params_body)[:-1]
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
                                                   sess.cookies.get_dict()),
@@ -557,77 +412,55 @@ def fuzzing(tasks):
                 for r in fuzz_sess.fuzz(hc=[200, 400]):
                     print(r)
             for i in params_body:
-                uri = ''
-                url = domain + tasks['uri'] + '?'
-                postdata = ''
-                for j in params_query:
-                    if j['type'] == 'array':
-                        for _ in range(random.randint(1, 20)):
-                            if type(types[j['items']]) == dict:
-                                for key, value in convert_types(
-                                        types[j['items']]).items():
-                                    uri += key + '=' + rstr.xeger(value) + '&'
-                            else:
-                                uri += j['name'] + '=' + rstr.xeger(
-                                    types[j['items']]) + '&'
-                    else:
-                        if type(types[j['type']]) == dict:
-                            for key, value in convert_types(
-                                    types[j['type']]).items():
-                                uri += key + '=' + rstr.xeger(value) + '&'
-                        else:
-                            uri += j['name'] + '=' + rstr.xeger(
-                                types[j['type']]) + '&'
-                for j in params_body:
-                    if i != j:
-                        if j['type'] == 'array':
-                            for _ in range(random.randint(1, 20)):
-                                if type(types[j['items']]) == dict:
-                                    for key, value in convert_types(
-                                            types[j['items']]).items():
-                                        postdata += key + '=' + rstr.xeger(
-                                            value) + '&'
-                                else:
-                                    postdata += j['name'] + '=' + rstr.xeger(
-                                        types[j['items']]) + '&'
-                            continue
-                        if j['type'] == 'object':
-                            for key, value in j['properties'].items():
-                                if type(types[value]) == dict:
-                                    for key1, value1 in convert_types(
-                                            types[value]).items():
-                                        postdata += key1 + '=' + rstr.xeger(
-                                            value1) + '&'
-                                else:
-                                    postdata += key + '=' + rstr.xeger(
-                                        types[value]) + '&'
-                            continue
-
-                        if type(types[j['type']]) == dict:
-                            for key, value in convert_types(
-                                    types[j['type']]).items():
-                                postdata += key + '=' + rstr.xeger(value) + '&'
-                        else:
-                            postdata += j['name'] + '=' + rstr.xeger(
-                                types[j['type']]) + '&'
-                uri = urllib.parse.quote(uri, safe='=&~._')
-                url += uri
-                postdata += i['name'] + '=FUZZ'
+                uri = urllib.parse.quote(parse_params(params_query),
+                                         safe='=&~.')
+                url = domain + tasks['uri'] + '?' + uri
+                postdata = parse_params(params_body, i) + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
                                                   sess.cookies.get_dict()),
                                               postdata=postdata,
-                                              method='POST').get_payload(
+                                              method='PUT').get_payload(
                     req_types)
                 for r in fuzz_sess.fuzz():
                     print(r)
-        elif method['method'] == 'delete':
+        elif method['method'] == 'put' and not tasks['is_changeable']:
             pass
+        elif method['method'] == 'delete':
+            uri = '/'.join([tasks['uri'].split('/')[:-1]]) + '/FUZZ'
+            url = domain + uri
+            fuzz_sess = wfuzz.FuzzSession(url=url,
+                                          cookie=convert_cookies_format(
+                                              sess.cookies.get_dict()),
+                                          method='DELETE').get_payload(
+                req_types)
+            for r in fuzz_sess.fuzz():
+                print(r)
+
         for i in tasks['pages']:
             fuzzing(i)
 
 
+os.system('node parser.js')
+with open('parsed.json', 'r') as json_file:
+    data = json.load(json_file)
+
 parsed_data = {}
 parsing(parsed_data, data)
+print(parsed_data)
+sess = requests.Session()
+
+headers = {'Content-type': 'application/json',
+           'Accept': 'text/plain',
+           'Content-Encoding': 'utf-8'}
+session = sess.post(
+    'https://mc-master-0604.msp.ru.corp.acronis.com/api/1/login',
+    data=json.dumps({"username": "Drelb", "password": "Egorpid1"}),
+    verify=False,
+    headers=headers)
+session = sess.get('https://mc-master-0604.msp.ru.corp.acronis.com/bc')
+session = sess.get(
+    'https://mc-master-0604.msp.ru.corp.acronis.com/api/task_manager/v2/status')
+print(1)
 fuzzing(parsed_data['pages'][2])
 get_fuzzing(parsed_data)
