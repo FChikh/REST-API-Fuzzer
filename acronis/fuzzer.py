@@ -11,7 +11,7 @@ import wfuzz
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-domain = 'https://mc-master-0604.msp.ru.corp.acronis.com'
+domain = 'https://resumecreator.ru'
 
 req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
              random.randint(10 ** 50, 10 ** 100),
@@ -195,32 +195,32 @@ def get_fuzzing(page):
     headers = {'Content-type': 'application/json',
                'Accept': 'text/plain',
                'Content-Encoding': 'utf-8'}
-    session.post('https://mc-master-0604.msp.ru.corp.acronis.com/api/1/login',
+    session.post('https://resumecreator.ru/api/1/login',
                  data=json.dumps({"username": 'Drelb', "password": 'Egorpid1'}),
                  verify=False,
                  headers=headers)
-    session.get('https://mc-master-0604.msp.ru.corp.acronis.com/bc',
+    session.get('https://resumecreator.ru/bc',
                 verify=False)
     try:
         page['baseUri']
         for i in range(1000):
             g = session.get(
-                'https://mc-master-0604.msp.ru.corp.acronis.com' + page[
+                'https://resumecreator.ru' + page[
                     'baseUri'] + '/' +
                 ''.join(random.choices(
                     string.ascii_letters + string.digits + '_.~-',
                     k=random.randint(1, 100))))
-            if g.status_code != 404:
+            if g.status_code == 404:
                 print(g)
     except KeyError:
         for i in range(1000):
             g = session.get(
-                'https://mc-master-0604.msp.ru.corp.acronis.com' + page[
+                'https://resumecreator.ru' + page[
                     'uri'] + '/' +
                 ''.join(random.choices(
                     string.ascii_letters + string.digits + '_.~-',
                     k=random.randint(1, 100))))
-            if g.status_code != 404:
+            if g.status_code == 404:
                 print(g)
     for i in page['pages']:
         get_fuzzing(i)
@@ -350,7 +350,7 @@ def fuzzing(tasks):
             for i in params:
                 print(i)
                 uri = urllib.parse.quote(parse_params(params, i), safe='=&~._')
-                url = domain + tasks['uri'] + '?' + uri
+                url = domain + tasks['uri'] + '?' + uri + i['name'] + '=FUZZ'
                 # print(url)
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
@@ -360,7 +360,37 @@ def fuzzing(tasks):
                 for r in fuzz_sess.fuzz(hc=[200, 400]):
                     print(r)
         elif method['method'] == 'get' and tasks['is_changeable']:
-            pass
+            params = method['queryParameters']
+            for i in params:
+                print(i)
+                uri = urllib.parse.quote(parse_params(params, i), safe='=&~._')
+                url = domain + tasks['uri'].replace(tasks['uri'][
+                                                    tasks['uri'].index('{'):
+                                                    tasks['uri'].index(
+                                                        '}') + 1], rstr.xeger(
+                    tasks['type'])) + '?' + uri + i['name'] + '=FUZZ'
+
+                # print(url)
+                fuzz_sess = wfuzz.FuzzSession(url=url,
+                                              cookie=convert_cookies_format(
+                                                  sess.cookies.get_dict()),
+                                              method='GET').get_payload(
+                    req_types)
+                for r in fuzz_sess.fuzz(hc=[200, 400]):
+                    print(r)
+            uri = urllib.parse.quote(parse_params(params), safe='=&~._')
+            url = domain + tasks['uri'].replace(tasks['uri'][
+                                                tasks['uri'].index('{'): tasks[
+                                                                             'uri'].index(
+                                                    '}') + 1],
+                                                'FUZZ') + '?' + uri
+            fuzz_sess = wfuzz.FuzzSession(url=url,
+                                          cookie=convert_cookies_format(
+                                              sess.cookies.get_dict()),
+                                          method='GET').get_payload(
+                req_types)
+            for r in fuzz_sess.fuzz(hc=[200, 400]):
+                print(r)
         elif method['method'] == 'post' and not tasks['is_changeable']:
             params_body = method['body']['properties']
             params_query = method['queryParameters']
@@ -393,7 +423,60 @@ def fuzzing(tasks):
                 for r in fuzz_sess.fuzz():
                     print(r)
         elif method['method'] == 'post' and tasks['is_changeable']:
-            pass
+            params_body = method['body']['properties']
+            params_query = method['queryParameters']
+            for i in params_body:
+                print(i)
+                uri = urllib.parse.quote(parse_params(params_query),
+                                         safe='=&~.')
+                url = domain + tasks['uri'].replace(tasks['uri'][
+                                                    tasks['uri'].index('{'):
+                                                    tasks['uri'].index(
+                                                        '}') + 1], rstr.xeger(
+                    tasks['type'])) + '?' + uri
+                postdata = parse_params(params_body, i) + i['name'] + '=FUZZ'
+                fuzz_sess = wfuzz.FuzzSession(url=url,
+                                              cookie=convert_cookies_format(
+                                                  sess.cookies.get_dict()),
+                                              postdata=postdata,
+                                              method='POST').get_payload(
+                    req_types)
+                for r in fuzz_sess.fuzz():
+                    print(r)
+            for i in params_query:
+                print(i)
+                uri = urllib.parse.quote(parse_params(params_query, i),
+                                         safe='=&~.')
+                url = domain + tasks['uri'].replace(tasks['uri'][
+                                                    tasks['uri'].index('{'):
+                                                    tasks['uri'].index(
+                                                        '}') + 1], rstr.xeger(
+                    tasks['type'])) + '?' + uri + i['name'] + '=FUZZ'
+                postdata = parse_params(params_body)
+                fuzz_sess = wfuzz.FuzzSession(url=url,
+                                              cookie=convert_cookies_format(
+                                                  sess.cookies.get_dict()),
+                                              postdata=postdata,
+                                              method='POST').get_payload(
+                    req_types)
+                for r in fuzz_sess.fuzz():
+                    print(r)
+
+            uri = urllib.parse.quote(parse_params(params_query), safe='=&~.')
+            url = domain + tasks['uri'].replace(tasks['uri'][
+                                                tasks['uri'].index('{'):
+                                                tasks['uri'].index(
+                                                    '}') + 1],
+                                                'FUZZ') + '?' + uri
+            postdata = parse_params(params_body)
+            fuzz_sess = wfuzz.FuzzSession(url=url,
+                                          cookie=convert_cookies_format(
+                                              sess.cookies.get_dict()),
+                                          postdata=postdata,
+                                          method='POST').get_payload(
+                req_types)
+            for r in fuzz_sess.fuzz():
+                print(r)
         elif method['method'] == 'put' and not tasks['is_changeable']:
             try:
                 params_body = method['body']['properties']
@@ -427,7 +510,61 @@ def fuzzing(tasks):
                 for r in fuzz_sess.fuzz():
                     print(r)
         elif method['method'] == 'put' and tasks['is_changeable']:
-            pass
+            try:
+                params_body = method['body']['properties']
+            except KeyError:
+                params_body = {}
+            params_query = method['queryParameters']
+            for i in params_body:
+                uri = urllib.parse.quote(parse_params(params_query),
+                                         safe='=&~.')
+                url = domain + tasks['uri'].replace(tasks['uri'][
+                                                    tasks['uri'].index('{'):
+                                                    tasks['uri'].index(
+                                                        '}') + 1], rstr.xeger(
+                    tasks['type'])) + '?' + uri
+                postdata = parse_params(params_body, i) + i['name'] + '=FUZZ'
+                fuzz_sess = wfuzz.FuzzSession(url=url,
+                                              cookie=convert_cookies_format(
+                                                  sess.cookies.get_dict()),
+                                              postdata=postdata,
+                                              method='PUT').get_payload(
+                    req_types)
+                for r in fuzz_sess.fuzz():
+                    print(r)
+            for i in params_query:
+                uri = urllib.parse.quote(parse_params(params_query, i),
+                                         safe='=&~.')
+                url = domain + tasks['uri'].replace(tasks['uri'][
+                                                    tasks['uri'].index('{'):
+                                                    tasks['uri'].index(
+                                                        '}') + 1], rstr.xeger(
+                    tasks['type'])) + '?' + uri + i['name'] + '=FUZZ'
+                postdata = parse_params(params_body)
+                fuzz_sess = wfuzz.FuzzSession(url=url,
+                                              cookie=convert_cookies_format(
+                                                  sess.cookies.get_dict()),
+                                              postdata=postdata,
+                                              method='PUT').get_payload(
+                    req_types)
+                for r in fuzz_sess.fuzz():
+                    print(r)
+
+            uri = urllib.parse.quote(parse_params(params_query), safe='=&~.')
+            url = domain + tasks['uri'].replace(tasks['uri'][
+                                                tasks['uri'].index('{'): tasks[
+                                                                             'uri'].index(
+                                                    '}') + 1],
+                                                'FUZZ') + '?' + uri
+            postdata = parse_params(params_body)
+            fuzz_sess = wfuzz.FuzzSession(url=url,
+                                          cookie=convert_cookies_format(
+                                              sess.cookies.get_dict()),
+                                          postdata=postdata,
+                                          method='PUT').get_payload(
+                req_types)
+            for r in fuzz_sess.fuzz():
+                print(r)
         elif method['method'] == 'delete':
             url = domain + tasks['uri'].replace(tasks['relativeUri'], '/FUZZ')
             fuzz_sess = wfuzz.FuzzSession(url=url,
@@ -455,13 +592,13 @@ headers = {'Content-type': 'application/json',
            'Accept': 'text/plain',
            'Content-Encoding': 'utf-8'}
 session = sess.post(
-    'https://mc-master-0604.msp.ru.corp.acronis.com/api/1/login',
+    'https://resumecreator.ru/api/1/login',
     data=json.dumps({"username": "Drelb", "password": "Egorpid1"}),
     verify=False,
     headers=headers)
-session = sess.get('https://mc-master-0604.msp.ru.corp.acronis.com/bc')
+session = sess.get('https://resumecreator.ru/bc')
 session = sess.get(
-    'https://mc-master-0604.msp.ru.corp.acronis.com/api/task_manager/v2/status')
+    'https://resumecreator.ru/api/task_manager/v2/status')
 print(1)
 fuzzing(parsed_data['pages'][2])
 get_fuzzing(parsed_data)
