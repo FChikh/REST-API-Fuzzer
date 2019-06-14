@@ -13,7 +13,7 @@ import rstr
 import wfuzz
 
 os.system('node parser.js')
-with open('parsed.json', 'r') as json_file:
+with open('parsed.json') as json_file:
     data = json.load(json_file)
 
 domain = 'https://mc-master-0604.msp.ru.corp.acronis.com'
@@ -44,19 +44,15 @@ def get_fuzzing(page):
     s.post('https://mc-master-0604.msp.ru.corp.acronis.com/api/1/login',
            data=json.dumps({"username": 'Drelb', "password": 'Egorpid1'}), verify=False, headers=headers)
     s.get('https://mc-master-0604.msp.ru.corp.acronis.com/bc', verify=False)
+    url = domain
     try:
-        page['baseUri']
-        for i in range(1000):
-            g = s.get('https://mc-master-0604.msp.ru.corp.acronis.com' + page['baseUri'] + '/' +
-                  ''.join(random.choices(string.ascii_letters + string.digits + '_.~-', k=random.randint(1, 100))))
-            if g.status_code != 404:
-                print(g)
+        url += page['baseUri']
     except KeyError:
-        for i in range(1000):
-            g = s.get('https://mc-master-0604.msp.ru.corp.acronis.com' + page['uri'] + '/' +
-                  ''.join(random.choices(string.ascii_letters + string.digits + '_.~-', k=random.randint(1, 100))))
-            if g.status_code != 404:
-                print(g)
+        url += page['uri']
+    url += '/FUZZ'
+    session = wfuzz.FuzzSession(url=url, cookie=convert_cookies_format(sess.cookies.get_dict())).get_payload(req_types)
+    for r in session.fuzz(hc=[404]):
+        print(r)
     for i in page['pages']:
         get_fuzzing(i)
 
@@ -321,7 +317,6 @@ types = {'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-
                       'current': r'^(-)?\d+$'},
          'actor': {'id': r'^.{1,64}$',
                    'clusterId': r'^.{1,64}$'},
-
          'executionState': r'(enqueued|assigned|started|paused|completed)',
          'blob': r'^.+$',
          'resultCode': r'(ok|error|warning|cancelled|abandoned|timedout)',
