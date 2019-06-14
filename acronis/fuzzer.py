@@ -193,7 +193,6 @@ def convert_types(type_dict):
 
 
 def get_fuzzing(page):
-<<<<<<< HEAD
     session = requests.Session()
     headers = {'Content-type': 'application/json',
                'Accept': 'text/plain',
