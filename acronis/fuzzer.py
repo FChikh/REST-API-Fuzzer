@@ -351,10 +351,8 @@ def fuzzing(tasks):
         if method['method'] == 'get' and not tasks['is_changeable']:
             params = method['queryParameters']
             for i in params:
-                print(i)
                 uri = urllib.parse.quote(parse_params(params, i), safe='=&~._')
                 url = domain + tasks['uri'] + '?' + uri + i['name'] + '=FUZZ'
-                # print(url)
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
                                                   sess.cookies.get_dict()),
@@ -365,7 +363,6 @@ def fuzzing(tasks):
         elif method['method'] == 'get' and tasks['is_changeable']:
             params = method['queryParameters']
             for i in params:
-                print(i)
                 uri = urllib.parse.quote(parse_params(params, i), safe='=&~._')
                 url = domain + tasks['uri'].replace(tasks['uri'][
                                                     tasks['uri'].index('{'):
@@ -373,7 +370,6 @@ def fuzzing(tasks):
                                                         '}') + 1], rstr.xeger(
                     tasks['type'])) + '?' + uri + i['name'] + '=FUZZ'
 
-                # print(url)
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
                                                   sess.cookies.get_dict()),
@@ -398,7 +394,6 @@ def fuzzing(tasks):
             params_body = method['body']['properties']
             params_query = method['queryParameters']
             for i in params_query:
-                print(i)
                 uri = urllib.parse.quote(parse_params(params_query, i),
                                          safe='=&~.')
                 url = domain + tasks['uri'] + '?' + uri + i['name'] + '=FUZZ'
@@ -412,7 +407,6 @@ def fuzzing(tasks):
                 for r in fuzz_sess.fuzz(hc=[200, 400]):
                     print(r)
             for i in params_body:
-                print(i)
                 uri = urllib.parse.quote(parse_params(params_query),
                                          safe='=&~.')
                 url = domain + tasks['uri'] + '?' + uri
@@ -429,7 +423,6 @@ def fuzzing(tasks):
             params_body = method['body']['properties']
             params_query = method['queryParameters']
             for i in params_body:
-                print(i)
                 uri = urllib.parse.quote(parse_params(params_query),
                                          safe='=&~.')
                 url = domain + tasks['uri'].replace(tasks['uri'][
@@ -447,7 +440,6 @@ def fuzzing(tasks):
                 for r in fuzz_sess.fuzz():
                     print(r)
             for i in params_query:
-                print(i)
                 uri = urllib.parse.quote(parse_params(params_query, i),
                                          safe='=&~.')
                 url = domain + tasks['uri'].replace(tasks['uri'][
@@ -513,6 +505,7 @@ def fuzzing(tasks):
                 for r in fuzz_sess.fuzz():
                     print(r)
         elif method['method'] == 'put' and tasks['is_changeable']:
+            print('put')
             try:
                 params_body = method['body']['properties']
             except KeyError:
@@ -569,6 +562,7 @@ def fuzzing(tasks):
             for r in fuzz_sess.fuzz():
                 print(r)
         elif method['method'] == 'delete':
+            print('delete')
             url = domain + tasks['uri'].replace(tasks['relativeUri'], '/FUZZ')
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(
