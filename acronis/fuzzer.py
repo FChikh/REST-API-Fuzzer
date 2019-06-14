@@ -138,6 +138,23 @@ types = {
 }
 
 
+def convert_cookies_format(cookies):
+    new_cookies = []
+    for key, value in cookies.items():
+        new_cookies.append('{}={}'.format(key, value))
+    return new_cookies
+
+
+def convert_types(type_dict):
+    formatted_dict = {}
+    for key, value in type_dict.items():
+        if type(value) == dict:
+            formatted_dict = {**formatted_dict, **convert_types(value)}
+        else:
+            formatted_dict = {**formatted_dict, **{key: value}}
+    return formatted_dict
+
+
 def parse_params(params, fuzz=''):
     result = ''
     for item in params:
@@ -173,23 +190,6 @@ def parse_params(params, fuzz=''):
                 result += item['name'] + '=' + rstr.xeger(
                     types[item['type']]) + '&'
     return result
-
-
-def convert_cookies_format(cookies):
-    new_cookies = []
-    for key, value in cookies.items():
-        new_cookies.append('{}={}'.format(key, value))
-    return new_cookies
-
-
-def convert_types(type_dict):
-    formatted_dict = {}
-    for key, value in type_dict.items():
-        if type(value) == dict:
-            formatted_dict = {**formatted_dict, **convert_types(value)}
-        else:
-            formatted_dict = {**formatted_dict, **{key: value}}
-    return formatted_dict
 
 
 def get_fuzzing(page):
