@@ -13,6 +13,8 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 domain = 'https://resumecreator.ru'
 
+sess = requests.Session()
+
 req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
              random.randint(10 ** 50, 10 ** 100),
              -random.randint(10 ** 50, 10 ** 100),
@@ -191,6 +193,7 @@ def convert_types(type_dict):
 
 
 def get_fuzzing(page):
+<<<<<<< HEAD
     session = requests.Session()
     headers = {'Content-type': 'application/json',
                'Accept': 'text/plain',
@@ -233,6 +236,7 @@ def parsing(parsed_page, page):
         parsed_page['type'] = None
     except KeyError:
         try:
+            parsed_page['relativeUri'] = page['relativeUri']
             parsed_page['uri'] = page['absoluteUri']
             if parsed_page['uri'][-1] == '}':
                 parsed_page['is_changeable'] = True
@@ -586,11 +590,11 @@ with open('parsed.json', 'r') as json_file:
 parsed_data = {}
 parsing(parsed_data, data)
 print(parsed_data)
-sess = requests.Session()
 
 headers = {'Content-type': 'application/json',
            'Accept': 'text/plain',
            'Content-Encoding': 'utf-8'}
+
 session = sess.post(
     'https://resumecreator.ru/api/1/login',
     data=json.dumps({"username": "Drelb", "password": "Egorpid1"}),
@@ -598,7 +602,10 @@ session = sess.post(
     headers=headers)
 session = sess.get('https://resumecreator.ru/bc')
 session = sess.get(
+<<<<<<< HEAD
     'https://resumecreator.ru/api/task_manager/v2/status')
 print(1)
+=======
+    'https://mc-master-0604.msp.ru.corp.acronis.com/api/task_manager/v2/status')
+>>>>>>> fba239525d88803d4efa39130b6b93b052fc6c0e
 fuzzing(parsed_data['pages'][2])
-get_fuzzing(parsed_data)
