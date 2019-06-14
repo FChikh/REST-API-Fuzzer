@@ -8,6 +8,7 @@ import requests
 import rstr
 import urllib3
 import wfuzz
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 domain = 'https://mc-master-0604.msp.ru.corp.acronis.com'
@@ -20,7 +21,7 @@ req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
              rstr.letters(65, 256), rstr.nonwhitespace(1, 64),
              rstr.nonwhitespace(65, 256),
              rstr.letters(257, 2000), rstr.nonwhitespace(257, 2000),
-             bool(random.getrandbits(1)),
+             int(bool(random.getrandbits(1))),
              'егор']
 
 types = {
@@ -335,7 +336,8 @@ def parsing(parsed_page, page):
     try:
         for resource in page['resources']:
             parsed_page['pages'].append({'type': parsed_page['type'],
-                                         'is_changeable': parsed_page['is_changeable']});
+                                         'is_changeable': parsed_page[
+                                             'is_changeable']});
             parsing(parsed_page['pages'][-1], resource)
     except KeyError:
         pass
@@ -424,11 +426,10 @@ def fuzzing(tasks):
                     req_types)
                 for r in fuzz_sess.fuzz():
                     print(r)
-        elif method['method'] == 'put' and not tasks['is_changeable']:
+        elif method['method'] == 'put' and tasks['is_changeable']:
             pass
         elif method['method'] == 'delete':
-            uri = '/'.join([tasks['uri'].split('/')[:-1]]) + '/FUZZ'
-            url = domain + uri
+            url = domain + tasks['uri'].replace(tasks['relativeUri'], '/FUZZ')
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(
                                               sess.cookies.get_dict()),
