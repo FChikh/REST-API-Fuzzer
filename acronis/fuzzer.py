@@ -4,137 +4,6 @@ import rstr
 import urllib3
 import wfuzz
 
-<<<<<<< HEAD
-=======
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-domain = 'https://resumecreator.ru'
-
-sess = requests.Session()
-
-req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
-             random.randint(10 ** 50, 10 ** 100),
-             -random.randint(10 ** 50, 10 ** 100),
-             random.uniform(0.0, 5.0), -random.uniform(0.0, 5.0), 0,
-             rstr.letters(1, 64),
-             rstr.letters(65, 256), rstr.nonwhitespace(1, 64),
-             rstr.nonwhitespace(65, 256),
-             rstr.letters(257, 2000), rstr.nonwhitespace(257, 2000),
-             int(bool(random.getrandbits(1))),
-             'егор']
-
-types = {
-    'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-['
-            r'0-9a-fA-F]{12}$',
-    'integer': r'^\d+$',
-    'string': r'^[A-Za-z0-9_\.~-]{1,256}$',
-    'boolean': r'(1|0)',
-    'string64': r'^[A-Za-z0-9_\.~-]{1,64}$',
-    'string256': r'^[A-Za-z0-9_\.~-]{1,256}$',
-    'domainError': {'domain': r'^[A-Za-z0-9_\.~-]+$',
-                    'code': r'^[A-Za-z0-9_\.~-]+$'},
-    'pageToken': r'^[A-Za-z0-9+/]+=$',
-    'pagedCollection': {'cursors': {'after': r'^[A-Za-z0-9+/]+=$',
-                                    'before': r'^[A-Za-z0-9+/]+=$'}},
-    'queueStatus': {'size': r'^(-)?\d+$'},
-    'progress': {'total': r'^(-)?\d+$',
-                 'current': r'^(-)?\d+$'},
-    'actor': {'id': r'^[A-Za-z0-9_\.~-]{1,64}$',
-              'clusterId': r'^[A-Za-z0-9_\.~-]{1,64}$'},
-
-    'executionState': r'(enqueued|assigned|started|paused|completed)',
-    'blob': r'^[A-Za-z0-9_\.~-]+$',
-    'resultCode': r'(ok|error|warning|cancelled|abandoned|timedout)',
-    'executionResult': {
-        'code': r'(ok|error|warning|cancelled|abandoned|timedout)',
-        'error': {'domain': r'^[A-Za-z0-9_\.~-]+$',
-                  'code': r'^[A-Za-z0-9_\.~-]+$'},
-        'payload': r'^[A-Za-z0-9_\.~-]+$'},
-    'time': r'^(\d+)-(0[1-9]|1[012])-(0[1-9]|[12]\d|3[01])[Tt]([01]\d|2['
-            r'0-3]):([0-5]\d):([0-5]\d|60)(\.\d+)?(([Zz])|([\+|\-]([01]\d|2['
-            r'0-3])))$',
-    'duration': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)session)?$',
-    'linkedResource': {'id': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                       'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                       'name': r'^[A-Za-z0-9_\.~-]{1,256}$'},
-    'workflowDefinition': {
-        'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{'
-                r'4}-[0-9a-fA-F]{12}$',
-        'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
-        'tags': r'^[A-Za-z0-9_\.~-]{1,64}$',
-        'progress': {'total': r'^(-)?\d+$',
-                     'current': r'^(-)?\d+$'}},
-    'taskPriority': r'(low|belowNormal|normal|aboveNormal|high)',
-    'taskDefinition': {
-        'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{'
-                r'4}-[0-9a-fA-F]{12}$',
-        'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
-        'queue': r'^[A-Za-z0-9_\.~-]{1,64}$',
-        'priority': r'(low|belowNormal|normal|aboveNormal|high)',
-        'heartBeatInterval': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?((['
-                             r'0-5]?\d)session)?$',
-        'queueTimeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)session)?$',
-        'ackTimeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)session)?$',
-        'execTimeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)session)?$',
-        'lifeTime': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?(([0-5]?\d)session)?$',
-        'maxAssignCount': r'^(-)?\d+$',
-        'cancellable': r'(1|0)',
-        'startedByUser': r'^[A-Za-z0-9_\.~-]{1,256}$',
-        'policy': {'id': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                   'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                   'name': r'^[A-Za-z0-9_\.~-]{1,256}$'},
-        'resource': {'id': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                     'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                     'name': r'^[A-Za-z0-9_\.~-]{1,256}$'},
-        'tags': r'^[A-Za-z0-9_\.~-]{1,64}$',
-        'affinity': {'agentId': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                     'clusterId': r'^[A-Za-z0-9_\.~-]{1,64}$'},
-        'argument': r'^[A-Za-z0-9_\.~-]+$',
-        'workflowId': r'^(-)?\d+$',
-        'context': r'^[A-Za-z0-9_\.~-]+$'},
-    'activityDefinition': {
-        'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{'
-                r'4}-[0-9a-fA-F]{12}$',
-        'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
-        'taskId': r'^(-)?\d+$',
-        'parentActivityId': r'^(-)?\d+$',
-        'progress': {'total': r'^(-)?\d+$',
-                     'current': r'^(-)?\d+$'},
-        'tags': r'^[A-Za-z0-9_\.~-]{1,64}$',
-        'resource': {'id': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                     'type': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                     'name': r'^[A-Za-z0-9_\.~-]{1,256}$'},
-        'state': r'(enqueued|assigned|started|paused|completed)',
-        'details': r'^[A-Za-z0-9_\.~-]+$'},
-    'blockerDefinition': {
-        'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{'
-                r'4}-[0-9a-fA-F]{12}$',
-        'taskId': r'^(-)?\d+$',
-        'activityId': r'^(-)?\d+$',
-        'issue': r'^[A-Za-z0-9_\.~-]+$'},
-    'eventDefinition': {'code': r'^(-)?\d+$',
-                        'taskId': r'^(-)?\d+$',
-                        'activityId': r'^(-)?\d+$',
-                        'severity': r'(info|warning|error)',
-                        'message': r'^[A-Za-z0-9_\.~-]+$',
-                        'payload': r'^[A-Za-z0-9_\.~-]+$',
-                        'occurredAt': r'^(\d+)-(0[1-9]|1[012])-(0[1-9]|['
-                                      r'12]\d|3[01])[Tt]([01]\d|2[0-3]):(['
-                                      r'0-5]\d):([0-5]\d|60)(\.\d+)?(([Zz])|('
-                                      r'[\+|\-]([01]\d|2[0-3])))$'},
-
-    'levelOfDetail': r'(short|long|full|debug|count)',
-    'timeFilter': r'^(\d+)-(0[1-9]|1[012])-(0[1-9]|[12]\d|3[01])[Tt](['
-                  r'01]\d|2[0-3]):([0-5]\d):([0-5]\d|60)(\.\d+)?(([Zz])|(['
-                  r'\+|\-]([01]\d|2[0-3])))$',
-    'taskConsumer': {'queues': r'^[A-Za-z0-9_\.~-]{1,64}$',
-                     'timeout': r'^(([01]?\d|2[0-3])h)?(([0-5]?\d)m)?((['
-                                r'0-5]?\d)session)?$',
-                     'qos': r'^(-)?\d+$'},
-    'taskHeartbeat': {'taskId': r'^(-)?\d+$'}
-}
-
->>>>>>> b3293e58e4f0c2d4ce768d6b870257ac7ec9d392
 
 def convert_cookies_format(cookies):
     new_cookies = []
@@ -153,6 +22,20 @@ def convert_types(type_dict):
     return formatted_dict
 
 
+def autorization():
+    session = requests.Session()
+    headers = {'Content-type': 'application/json',
+               'Accept': 'text/plain',
+               'Content-Encoding': 'utf-8'}
+    session.post('https://resumecreator.ru/api/1/login',
+                 data=json.dumps({"username": 'Drelb', "password": 'Egorpid1'}),
+                 verify=False,
+                 headers=headers)
+    session.get('https://resumecreator.ru/bc',
+                verify=False)
+    return session
+
+
 def parse_params(params, fuzz=''):
     result = ''
     for item in params:
@@ -168,6 +51,7 @@ def parse_params(params, fuzz=''):
                         result += item['name'] + '=' + rstr.xeger(
                             types[item['items']]) + '&'
                 continue
+            
             if item['type'] == 'object':
                 for key, value in item['properties'].items():
                     if type(types[value]) == dict:
@@ -187,51 +71,33 @@ def parse_params(params, fuzz=''):
             else:
                 result += item['name'] + '=' + rstr.xeger(
                     types[item['type']]) + '&'
+                
     return result
 
 
-<<<<<<< HEAD
 def fuzzing_component1(page):
-    session = requests.Session()
-    headers = {'Content-type': 'application/json',
-               'Accept': 'text/plain',
-               'Content-Encoding': 'utf-8'}
-    session.post('https://resumecreator.ru/api/1/login',
-                 data=json.dumps({"username": 'Drelb', "password": 'Egorpid1'}),
-                 verify=False,
-                 headers=headers)
-    session.get('https://resumecreator.ru/bc',
-                verify=False)
-=======
-def get_fuzzing(page):
+    session = autorization()
     url = domain
->>>>>>> b3293e58e4f0c2d4ce768d6b870257ac7ec9d392
     try:
-        page['baseUri']
-        for i in range(1000):
-            g = session.get(
-                'https://resumecreator.ru' + page[
-                    'baseUri'] + '/' +
-                ''.join(random.choices(
-                    string.ascii_letters + string.digits + '_.~-',
-                    k=random.randint(1, 100))))
-            if g.status_code == 404:
-                print(g)
+        url += page['baseUri']
     except KeyError:
-        for i in range(1000):
-            g = session.get(
-                'https://resumecreator.ru' + page[
-                    'uri'] + '/' +
-                ''.join(random.choices(
-                    string.ascii_letters + string.digits + '_.~-',
-                    k=random.randint(1, 100))))
-            if g.status_code == 404:
-                print(g)
+        url += page['uri']
+    url += '/FUZZ'
+    
+    fuzz_sess = wfuzz.FuzzSession(url=url, 
+                                  cookie=convert_cookies_format \
+                                  (session.cookies.get_dict()), 
+                                  method='GET').get_payload(req_types)
+    for r in fuuz_sess.fuzz(hc=[404]):
+        print(r)
+        
     for i in page['pages']:
         fuzzing_component1(i)
 
 
 def fuzzing_component2(tasks):
+    session = autorization()
+    
     for method in tasks['methods']:
         if method['method'] == 'get' and not tasks['is_changeable']:
             params = method['queryParameters']
@@ -240,11 +106,12 @@ def fuzzing_component2(tasks):
                 url = domain + tasks['uri'] + '?' + uri + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
-                                                  sess.cookies.get_dict()),
+                                                  session.cookies.get_dict()),
                                               method='GET').get_payload(
                     req_types)
                 for r in fuzz_sess.fuzz(hc=[200, 400]):
                     print(r)
+                    
         elif method['method'] == 'get' and tasks['is_changeable']:
             params = method['queryParameters']
             for i in params:
@@ -257,11 +124,12 @@ def fuzzing_component2(tasks):
 
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
-                                                  sess.cookies.get_dict()),
+                                                  session.cookies.get_dict()),
                                               method='GET').get_payload(
                     req_types)
                 for r in fuzz_sess.fuzz(hc=[200, 400]):
                     print(r)
+                    
             uri = urllib.parse.quote(parse_params(params), safe='=&~._')
             url = domain + tasks['uri'].replace(tasks['uri'][
                                                 tasks['uri'].index('{'): tasks[
@@ -270,11 +138,12 @@ def fuzzing_component2(tasks):
                                                 'FUZZ') + '?' + uri
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(
-                                              sess.cookies.get_dict()),
+                                              session.cookies.get_dict()),
                                           method='GET').get_payload(
                 req_types)
             for r in fuzz_sess.fuzz(hc=[200, 400]):
                 print(r)
+                
         elif method['method'] == 'post' and not tasks['is_changeable']:
             params_body = method['body']['properties']
             params_query = method['queryParameters']
@@ -285,12 +154,13 @@ def fuzzing_component2(tasks):
                 postdata = parse_params(params_body)[:-1]
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
-                                                  sess.cookies.get_dict()),
+                                                  session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='POST').get_payload(
                     req_types)
                 for r in fuzz_sess.fuzz(hc=[200, 400]):
                     print(r)
+                    
             for i in params_body:
                 uri = urllib.parse.quote(parse_params(params_query),
                                          safe='=&~.')
@@ -298,12 +168,13 @@ def fuzzing_component2(tasks):
                 postdata = parse_params(params_body, i) + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
-                                                  sess.cookies.get_dict()),
+                                                  session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='POST').get_payload(
                     req_types)
                 for r in fuzz_sess.fuzz():
                     print(r)
+                    
         elif method['method'] == 'post' and tasks['is_changeable']:
             params_body = method['body']['properties']
             params_query = method['queryParameters']
@@ -318,12 +189,13 @@ def fuzzing_component2(tasks):
                 postdata = parse_params(params_body, i) + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
-                                                  sess.cookies.get_dict()),
+                                                  session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='POST').get_payload(
                     req_types)
                 for r in fuzz_sess.fuzz():
                     print(r)
+                    
             for i in params_query:
                 uri = urllib.parse.quote(parse_params(params_query, i),
                                          safe='=&~.')
@@ -335,7 +207,7 @@ def fuzzing_component2(tasks):
                 postdata = parse_params(params_body)
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
-                                                  sess.cookies.get_dict()),
+                                                  session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='POST').get_payload(
                     req_types)
@@ -351,12 +223,13 @@ def fuzzing_component2(tasks):
             postdata = parse_params(params_body)
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(
-                                              sess.cookies.get_dict()),
+                                              session.cookies.get_dict()),
                                           postdata=postdata,
                                           method='POST').get_payload(
                 req_types)
             for r in fuzz_sess.fuzz():
                 print(r)
+                
         elif method['method'] == 'put' and not tasks['is_changeable']:
             try:
                 params_body = method['body']['properties']
@@ -370,12 +243,13 @@ def fuzzing_component2(tasks):
                 postdata = parse_params(params_body)[:-1]
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
-                                                  sess.cookies.get_dict()),
+                                                  session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='POST').get_payload(
                     req_types)
                 for r in fuzz_sess.fuzz(hc=[200, 400]):
                     print(r)
+                    
             for i in params_body:
                 uri = urllib.parse.quote(parse_params(params_query),
                                          safe='=&~.')
@@ -383,12 +257,13 @@ def fuzzing_component2(tasks):
                 postdata = parse_params(params_body, i) + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
-                                                  sess.cookies.get_dict()),
+                                                  session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='PUT').get_payload(
                     req_types)
                 for r in fuzz_sess.fuzz():
                     print(r)
+                    
         elif method['method'] == 'put' and tasks['is_changeable']:
             print('put')
             try:
@@ -407,12 +282,13 @@ def fuzzing_component2(tasks):
                 postdata = parse_params(params_body, i) + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
-                                                  sess.cookies.get_dict()),
+                                                  session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='PUT').get_payload(
                     req_types)
                 for r in fuzz_sess.fuzz():
                     print(r)
+                    
             for i in params_query:
                 uri = urllib.parse.quote(parse_params(params_query, i),
                                          safe='=&~.')
@@ -424,7 +300,7 @@ def fuzzing_component2(tasks):
                 postdata = parse_params(params_body)
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(
-                                                  sess.cookies.get_dict()),
+                                                  session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='PUT').get_payload(
                     req_types)
@@ -440,49 +316,22 @@ def fuzzing_component2(tasks):
             postdata = parse_params(params_body)
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(
-                                              sess.cookies.get_dict()),
+                                              session.cookies.get_dict()),
                                           postdata=postdata,
                                           method='PUT').get_payload(
                 req_types)
             for r in fuzz_sess.fuzz():
                 print(r)
+                
         elif method['method'] == 'delete':
             url = domain + tasks['uri'].replace(tasks['relativeUri'], '/FUZZ')
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(
-                                              sess.cookies.get_dict()),
+                                              session.cookies.get_dict()),
                                           method='DELETE').get_payload(
                 req_types)
             for r in fuzz_sess.fuzz():
                 print(r)
 
         for i in tasks['pages']:
-<<<<<<< HEAD
             fuzzing_component2(i)
-    
-=======
-            fuzzing(i)
-
-
-os.system('node parser.js')
-with open('parsed.json', 'r') as json_file:
-    data = json.load(json_file)
-
-parsed_data = {}
-parsing(parsed_data, data)
-print(parsed_data)
-
-headers = {'Content-type': 'application/json',
-           'Accept': 'text/plain',
-           'Content-Encoding': 'utf-8'}
-
-session = sess.post(
-    'https://resumecreator.ru/api/1/login',
-    data=json.dumps({"username": "Drelb", "password": "Egorpid1"}),
-    verify=False,
-    headers=headers)
-session = sess.get('https://resumecreator.ru/bc')
-session = sess.get('https://resumecreator.ru/api/task_manager/v2/status')
-for item in parsed_data['pages']:
-    fuzzing(item)
->>>>>>> b3293e58e4f0c2d4ce768d6b870257ac7ec9d392
