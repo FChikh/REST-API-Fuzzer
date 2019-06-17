@@ -114,7 +114,6 @@ def fuzzing_component2(tasks):
                 uri = urllib.parse.quote(parse_params(params, i), safe='=&~._')
                 url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'): tasks['uri'].index('}') + 1],
                                                     rstr.xeger(tasks['type'])) + '?' + uri + i['name'] + '=FUZZ'
-
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               method='GET').get_payload(req_types)
