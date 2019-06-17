@@ -1,7 +1,6 @@
 import urllib
 import requests
 import rstr
-import urllib3
 import wfuzz
 import random
 import json
