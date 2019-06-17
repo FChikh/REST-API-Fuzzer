@@ -1,7 +1,6 @@
 import urllib
 import requests
 import rstr
-import urllib3
 import wfuzz
 import random
 import json
@@ -74,15 +73,20 @@ def parse_params(params, fuzz=''):
 def fuzzing_component1(page):
     session = authorization()
     url = domain
-    try:
-        url += page['baseUri']
-    except KeyError:
-        url += page['uri']
-    url += '/FUZZ'
-    
-    fuzz_sess = wfuzz.FuzzSession(url=url, 
+
+    if not page['is_changeable']:
+        try:
+            url += page['baseUri']
+        except KeyError:
+            url += page['uri']
+        url += '/FUZZ'
+    else:
+        url += page['uri'].replace(page['uri'][page['uri'].index('{'): page['uri'].index('}') + 1],
+                                   rstr.xeger(page['type'])) + '/FUZZ'
+    fuzz_sess = wfuzz.FuzzSession(url=url,
                                   cookie=convert_cookies_format(session.cookies.get_dict()),
-                                  method='GET').get_payload(req_types)
+                                  method='GET',
+                                  payloads=[("file", dict(fn="big.txt"))]).get_payload(req_types)
     
     print(url)
     for r in fuzz_sess.fuzz():
@@ -115,7 +119,6 @@ def fuzzing_component2(tasks):
                 uri = urllib.parse.quote(parse_params(params, i), safe='=&~._')
                 url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'): tasks['uri'].index('}') + 1],
                                                     rstr.xeger(tasks['type'])) + '?' + uri + i['name'] + '=FUZZ'
-
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               method='GET').get_payload(req_types)
@@ -130,7 +133,7 @@ def fuzzing_component2(tasks):
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(session.cookies.get_dict()),
                                           method='GET').get_payload(req_types)
-            
+
             print(url)
             for r in fuzz_sess.fuzz(hc=[200, 400]):
                 print(r)
@@ -139,8 +142,7 @@ def fuzzing_component2(tasks):
             params_body = method['body']['properties']
             params_query = method['queryParameters']
             for i in params_query:
-                uri = urllib.parse.quote(parse_params(params_query, i),
-                                         safe='=&~.')
+                uri = urllib.parse.quote(parse_params(params_query, i), safe='=&~.')
                 url = domain + tasks['uri'] + '?' + uri + i['name'] + '=FUZZ'
                 postdata = parse_params(params_body)[:-1]
                 fuzz_sess = wfuzz.FuzzSession(url=url,
