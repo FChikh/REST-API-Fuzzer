@@ -1,4 +1,11 @@
 # REST-API-Fuzzer
 
-parser.js - parser on js, used in fuzzer.py, to change .raml file you need to change 7th line in parser.js, to run use command node parser.js, if you haven't install node it's your personal problem
- 
+This is the prototype of intelligent fuzzer for REST API, which was created during the Summer school internship in Acronis.
+
+##How it works:
+* It analyzes RAML specification for your API
+* It has 2 fuzzing sessions. Firstly, random routing. Simply going to popular routes. Secondly, GET & POST params fuzzing. 
+
+
+
+###Check this out!
