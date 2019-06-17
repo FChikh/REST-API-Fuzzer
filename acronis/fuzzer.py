@@ -5,6 +5,7 @@ import urllib3
 import wfuzz
 import random
 import json
+from consts import *
 
 
 def convert_cookies_format(cookies):
@@ -78,7 +79,7 @@ def parse_params(params, fuzz=''):
 
 
 def fuzzing_component1(page):
-    session = autorization()
+    session = authorization()
     url = domain
     try:
         url += page['baseUri']
@@ -98,7 +99,7 @@ def fuzzing_component1(page):
 
 
 def fuzzing_component2(tasks):
-    session = autorization()
+    session = authorization()
     
     for method in tasks['methods']:
         if method['method'] == 'get' and not tasks['is_changeable']:
