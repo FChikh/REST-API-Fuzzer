@@ -86,7 +86,7 @@ def fuzzing_component1(page):
     fuzz_sess = wfuzz.FuzzSession(url=url,
                                   cookie=convert_cookies_format(session.cookies.get_dict()),
                                   method='GET',
-                                  payloads=[("file", dict(fn="big.txt"))]).get_payload(req_types)
+                                  payloads=[("file", dict(fn="big.txt"))])
     
     print(url)
     for r in fuzz_sess.fuzz():
