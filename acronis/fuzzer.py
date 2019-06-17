@@ -193,37 +193,15 @@ def parse_params(params, fuzz=''):
 
 
 def get_fuzzing(page):
-    session = requests.Session()
-    headers = {'Content-type': 'application/json',
-               'Accept': 'text/plain',
-               'Content-Encoding': 'utf-8'}
-    session.post('https://resumecreator.ru/api/1/login',
-                 data=json.dumps({"username": 'Drelb', "password": 'Egorpid1'}),
-                 verify=False,
-                 headers=headers)
-    session.get('https://resumecreator.ru/bc',
-                verify=False)
+    url = domain
     try:
-        page['baseUri']
-        for i in range(1000):
-            g = session.get(
-                'https://resumecreator.ru' + page[
-                    'baseUri'] + '/' +
-                ''.join(random.choices(
-                    string.ascii_letters + string.digits + '_.~-',
-                    k=random.randint(1, 100))))
-            if g.status_code == 404:
-                print(g)
+        url += page['baseUri']
     except KeyError:
-        for i in range(1000):
-            g = session.get(
-                'https://resumecreator.ru' + page[
-                    'uri'] + '/' +
-                ''.join(random.choices(
-                    string.ascii_letters + string.digits + '_.~-',
-                    k=random.randint(1, 100))))
-            if g.status_code == 404:
-                print(g)
+        url += page['uri']
+    url += '/FUZZ'
+    s = wfuzz.FuzzSession(url=url, cookie=convert_cookies_format(sess.cookies.get_dict()), method='GET').get_payload(req_types)
+    for r in s.fuzz(hc=[404]):
+        print(r)
     for i in page['pages']:
         get_fuzzing(i)
 
