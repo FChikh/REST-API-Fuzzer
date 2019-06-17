@@ -130,8 +130,7 @@ def fuzzing_component2(tasks):
             params_body = method['body']['properties']
             params_query = method['queryParameters']
             for i in params_query:
-                uri = urllib.parse.quote(parse_params(params_query, i),
-                                         safe='=&~.')
+                uri = urllib.parse.quote(parse_params(params_query, i), safe='=&~.')
                 url = domain + tasks['uri'] + '?' + uri + i['name'] + '=FUZZ'
                 postdata = parse_params(params_body)[:-1]
                 fuzz_sess = wfuzz.FuzzSession(url=url,
