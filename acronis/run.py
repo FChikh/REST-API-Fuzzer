@@ -2,6 +2,10 @@ from parser import fetch_parsed_data
 from fuzzer import fuzzing_component1, fuzzing_component2
 
 import urllib3
+import sys
+
+file = open('log.txt', 'w')
+sys.stdout = file
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
