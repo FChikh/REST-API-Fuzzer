@@ -82,10 +82,11 @@ def fuzzing_component1(page):
         url += '/FUZZ'
     else:
         url += page['uri'].replace(page['uri'][page['uri'].index('{'): page['uri'].index('}') + 1],
-                                        rstr.xeger(page['type'])) + '/FUZZ'
+                                   rstr.xeger(page['type'])) + '/FUZZ'
     fuzz_sess = wfuzz.FuzzSession(url=url,
                                   cookie=convert_cookies_format(session.cookies.get_dict()),
-                                  method='GET').get_payload(req_types)
+                                  method='GET',
+                                  payloads=[("file", dict(fn="big.txt"))]).get_payload(req_types)
     
     print(url)
     for r in fuzz_sess.fuzz():
