@@ -83,6 +83,8 @@ def fuzzing_component1(page):
     fuzz_sess = wfuzz.FuzzSession(url=url, 
                                   cookie=convert_cookies_format(session.cookies.get_dict()),
                                   method='GET').get_payload(req_types)
+    
+    print(url)
     for r in fuzz_sess.fuzz():
         print(r)
     
@@ -102,8 +104,11 @@ def fuzzing_component2(tasks):
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               method='GET').get_payload(req_types)
+                
+                print(url)
                 for r in fuzz_sess.fuzz():
                     print(r)
+
         elif method['method'] == 'get' and tasks['is_changeable']:
             params = method['queryParameters']
             for i in params:
@@ -114,6 +119,8 @@ def fuzzing_component2(tasks):
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               method='GET').get_payload(req_types)
+                
+                print(url)
                 for r in fuzz_sess.fuzz(hc=[200, 400]):
                     print(r)
                     
@@ -123,6 +130,8 @@ def fuzzing_component2(tasks):
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(session.cookies.get_dict()),
                                           method='GET').get_payload(req_types)
+            
+            print(url)
             for r in fuzz_sess.fuzz(hc=[200, 400]):
                 print(r)
                 
@@ -138,6 +147,8 @@ def fuzzing_component2(tasks):
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='POST').get_payload(req_types)
+                
+                print(url, postdata)
                 for r in fuzz_sess.fuzz(hc=[200, 400]):
                     print(r)
                     
@@ -149,6 +160,8 @@ def fuzzing_component2(tasks):
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='POST').get_payload(req_types)
+                
+                print(url, postdata)
                 for r in fuzz_sess.fuzz():
                     print(r)
                     
@@ -164,6 +177,8 @@ def fuzzing_component2(tasks):
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='POST').get_payload(req_types)
+                
+                print(url, postdata)
                 for r in fuzz_sess.fuzz():
                     print(r)
                     
@@ -176,6 +191,8 @@ def fuzzing_component2(tasks):
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='POST').get_payload(req_types)
+                
+                print(url, postdata)
                 for r in fuzz_sess.fuzz():
                     print(r)
 
@@ -187,6 +204,8 @@ def fuzzing_component2(tasks):
                                           cookie=convert_cookies_format(session.cookies.get_dict()),
                                           postdata=postdata,
                                           method='POST').get_payload(req_types)
+            
+            print(url, postdata)
             for r in fuzz_sess.fuzz():
                 print(r)
                 
@@ -204,6 +223,8 @@ def fuzzing_component2(tasks):
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='POST').get_payload(req_types)
+                
+                print(url, postdata)
                 for r in fuzz_sess.fuzz(hc=[200, 400]):
                     print(r)
                     
@@ -215,6 +236,8 @@ def fuzzing_component2(tasks):
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='PUT').get_payload(req_types)
+                
+                print(url, postdata)
                 for r in fuzz_sess.fuzz():
                     print(r)
                     
@@ -234,6 +257,8 @@ def fuzzing_component2(tasks):
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='PUT').get_payload(req_types)
+                
+                print(url, postdata)
                 for r in fuzz_sess.fuzz():
                     print(r)
                     
@@ -246,6 +271,8 @@ def fuzzing_component2(tasks):
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='PUT').get_payload(req_types)
+                
+                print(url, postdata)
                 for r in fuzz_sess.fuzz():
                     print(r)
 
@@ -257,6 +284,8 @@ def fuzzing_component2(tasks):
                                           cookie=convert_cookies_format(session.cookies.get_dict()),
                                           postdata=postdata,
                                           method='PUT').get_payload(req_types)
+            
+            print(url, postdata)
             for r in fuzz_sess.fuzz():
                 print(r)
                 
@@ -265,9 +294,10 @@ def fuzzing_component2(tasks):
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(session.cookies.get_dict()),
                                           method='DELETE').get_payload(req_types)
+            
+            print(url)
             for r in fuzz_sess.fuzz():
                 print(r)
         
         for i in tasks['pages']:
             fuzzing_component2(i)
-    
