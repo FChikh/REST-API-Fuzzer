@@ -71,7 +71,7 @@ def parse_params(params, fuzz=''):
 
 
 def fuzzing_component1(page):
-    file = open("log.txt", "a")
+    file = open("log.txt", "w")
     session = authorization()
     url = domain
     try:
@@ -83,7 +83,7 @@ def fuzzing_component1(page):
     fuzz_sess = wfuzz.FuzzSession(url=url, 
                                   cookie=convert_cookies_format(session.cookies.get_dict()),
                                   method='GET').get_payload(req_types)
-    for r in fuzz_sess.fuzz(hc=[404]):
+    for r in fuzz_sess.fuzz():
         file.write(str(r) + '\n')
     
     file.close()
@@ -93,7 +93,7 @@ def fuzzing_component1(page):
 
 def fuzzing_component2(tasks):
     session = authorization()
-    file = open("log.txt", "a")
+    file = open("log.txt", "w")
     
     for method in tasks['methods']:
         if method['method'] == 'get' and not tasks['is_changeable']:
@@ -104,7 +104,7 @@ def fuzzing_component2(tasks):
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               method='GET').get_payload(req_types)
-                for r in fuzz_sess.fuzz(hc=[200, 400]):
+                for r in fuzz_sess.fuzz():
                     file.write(str(r) + '\n')
                     
         elif method['method'] == 'get' and tasks['is_changeable']:
@@ -117,7 +117,7 @@ def fuzzing_component2(tasks):
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               method='GET').get_payload(req_types)
-                for r in fuzz_sess.fuzz(hc=[200, 400]):
+                for r in fuzz_sess.fuzz():
                     file.write(str(r) + '\n')
                     
             uri = urllib.parse.quote(parse_params(params), safe='=&~._')
@@ -126,7 +126,7 @@ def fuzzing_component2(tasks):
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(session.cookies.get_dict()),
                                           method='GET').get_payload(req_types)
-            for r in fuzz_sess.fuzz(hc=[200, 400]):
+            for r in fuzz_sess.fuzz():
                 file.write(str(r) + '\n')
                 
         elif method['method'] == 'post' and not tasks['is_changeable']:
@@ -141,7 +141,7 @@ def fuzzing_component2(tasks):
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='POST').get_payload(req_types)
-                for r in fuzz_sess.fuzz(hc=[200, 400]):
+                for r in fuzz_sess.fuzz():
                     file.write(str(r) + '\n')
                     
             for i in params_body:
@@ -207,7 +207,7 @@ def fuzzing_component2(tasks):
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               postdata=postdata,
                                               method='POST').get_payload(req_types)
-                for r in fuzz_sess.fuzz(hc=[200, 400]):
+                for r in fuzz_sess.fuzz():
                     file.write(str(r) + '\n')
                     
             for i in params_body:
