@@ -73,13 +73,17 @@ def parse_params(params, fuzz=''):
 def fuzzing_component1(page):
     session = authorization()
     url = domain
-    try:
-        url += page['baseUri']
-    except KeyError:
-        url += page['uri']
-    url += '/FUZZ'
-    
-    fuzz_sess = wfuzz.FuzzSession(url=url, 
+
+    if not page['is_changeable']:
+        try:
+            url += page['baseUri']
+        except KeyError:
+            url += page['uri']
+        url += '/FUZZ'
+    else:
+        url += page['uri'].replace(page['uri'][page['uri'].index('{'): page['uri'].index('}') + 1],
+                                        rstr.xeger(page['type'])) + '/FUZZ'
+    fuzz_sess = wfuzz.FuzzSession(url=url,
                                   cookie=convert_cookies_format(session.cookies.get_dict()),
                                   method='GET').get_payload(req_types)
     
@@ -128,7 +132,7 @@ def fuzzing_component2(tasks):
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(session.cookies.get_dict()),
                                           method='GET').get_payload(req_types)
-            
+
             print(url)
             for r in fuzz_sess.fuzz(hc=[200, 400]):
                 print(r)
