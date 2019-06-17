@@ -4,6 +4,7 @@ import rstr
 import urllib3
 import wfuzz
 import random
+import json
 
 
 def convert_cookies_format(cookies):
@@ -23,7 +24,7 @@ def convert_types(type_dict):
     return formatted_dict
 
 
-def autorization():
+def authorization():
     session = requests.Session()
     headers = {'Content-type': 'application/json',
                'Accept': 'text/plain',
