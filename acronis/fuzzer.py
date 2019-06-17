@@ -4,6 +4,8 @@ import rstr
 import urllib3
 import wfuzz
 import random
+import json
+from consts import *
 
 
 def convert_cookies_format(cookies):
@@ -69,7 +71,7 @@ def parse_params(params, fuzz=''):
 
 
 def fuzzing_component1(page):
-    session = autorization()
+    session = authorization()
     url = domain
     try:
         url += page['baseUri']
