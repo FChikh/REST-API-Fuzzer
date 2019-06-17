@@ -594,5 +594,5 @@ session = sess.post(
     headers=headers)
 session = sess.get('https://resumecreator.ru/bc')
 session = sess.get('https://resumecreator.ru/api/task_manager/v2/status')
-print(1)
-fuzzing(parsed_data['pages'][2])
+for page in parsed_data['pages']:
+    fuzzing(page)
