@@ -3,6 +3,7 @@ import requests
 import rstr
 import urllib3
 import wfuzz
+import random
 
 
 def convert_cookies_format(cookies):
@@ -88,7 +89,7 @@ def fuzzing_component1(page):
                                   cookie=convert_cookies_format \
                                   (session.cookies.get_dict()), 
                                   method='GET').get_payload(req_types)
-    for r in fuuz_sess.fuzz(hc=[404]):
+    for r in fuzz_sess.fuzz(hc=[404]):
         print(r)
         
     for i in page['pages']:
