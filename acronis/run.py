@@ -3,6 +3,8 @@ from fuzzer import fuzzing_component1, fuzzing_component2
 
 import urllib3
 import sys
+import time
+start_time = time.time()
 
 file = open('log.txt', 'w')
 console_stdout = sys.stdout
@@ -24,3 +26,4 @@ for page in data['pages']:
     fuzzing_component2(page)
 sys.stdout = console_stdout
 print('Done! Check out log.txt file')
+print("--- %s seconds ---" % (time.time() - start_time))
