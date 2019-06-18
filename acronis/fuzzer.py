@@ -119,7 +119,7 @@ def fuzzing_component2(tasks):
             for i in params:
                 uri = urllib.parse.quote(parse_params(params, i), safe='=&~._')
                 url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'): tasks['uri'].index('}') + 1],
-                                                    rstr.xeger(tasks['type'])) + '?' + uri + i['name'] + '=FUZZ'
+                                                    rstr.xeger(types[tasks['type']])) + '?' + uri + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               method='GET').get_payload(req_types)
@@ -174,7 +174,7 @@ def fuzzing_component2(tasks):
             for i in params_body:
                 uri = urllib.parse.quote(parse_params(params_query), safe='=&~.')
                 url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'): tasks['uri'].index('}') + 1],
-                                                    rstr.xeger(tasks['type'])) + '?' + uri
+                                                    rstr.xeger(types[tasks['type']])) + '?' + uri
                 postdata = parse_params(params_body, i) + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
@@ -188,7 +188,7 @@ def fuzzing_component2(tasks):
             for i in params_query:
                 uri = urllib.parse.quote(parse_params(params_query, i), safe='=&~.')
                 url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'):tasks['uri'].index('}') + 1],
-                                                    rstr.xeger(tasks['type'])) + '?' + uri + i['name'] + '=FUZZ'
+                                                    rstr.xeger(types[tasks['type']])) + '?' + uri + i['name'] + '=FUZZ'
                 postdata = parse_params(params_body)
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
@@ -254,7 +254,7 @@ def fuzzing_component2(tasks):
             for i in params_body:
                 uri = urllib.parse.quote(parse_params(params_query),safe='=&~.')
                 url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'): tasks['uri'].index('}') + 1],
-                                                    rstr.xeger(tasks['type'])) + '?' + uri
+                                                    rstr.xeger(types[tasks['type']])) + '?' + uri
                 postdata = parse_params(params_body, i) + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
@@ -268,7 +268,7 @@ def fuzzing_component2(tasks):
             for i in params_query:
                 uri = urllib.parse.quote(parse_params(params_query, i),safe='=&~.')
                 url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'): tasks['uri'].index('}') + 1],
-                                                    rstr.xeger(tasks['type'])) + '?' + uri + i['name'] + '=FUZZ'
+                                                    rstr.xeger(types[tasks['type']])) + '?' + uri + i['name'] + '=FUZZ'
                 postdata = parse_params(params_body)
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
