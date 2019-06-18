@@ -5,7 +5,7 @@ import wfuzz
 import random
 import json
 import sys
-from consts import *
+from consts import types, domain, req_types
 
 
 def convert_cookies_format(cookies):
@@ -30,11 +30,11 @@ def authorization():
     headers = {'Content-type': 'application/json',
                'Accept': 'text/plain',
                'Content-Encoding': 'utf-8'}
-    session.post('https://resumecreator.ru/api/1/login',
-                 data=json.dumps({"username": 'Drelb', "password": 'Egorpid1'}),
+    session.post('https://mc-ks-master.msp.ru.corp.acronis.com/api/1/login',
+                 data=json.dumps({"username": 'root', "password": 'root'}),
                  verify=False,
                  headers=headers)
-    session.get('https://resumecreator.ru/bc',
+    session.get('https://mc-ks-master.msp.ru.corp.acronis.com/bc',
                 verify=False)
     return session
 
@@ -42,7 +42,7 @@ def authorization():
 def parse_params(params, fuzz=''):
     result = ''
     for item in params:
-        if item != fuzz:
+        if item != fuzz and item['required']:
             if item['type'] == 'array':
                 for _ in range(random.randint(1, 20)):
                     if type(types[item['items']]) == dict:
@@ -89,7 +89,7 @@ def fuzzing_component1(page):
                                   payloads=[("file", dict(fn="big.txt"))])
     
     print(url)
-    for r in fuzz_sess.fuzz():
+    for r in fuzz_sess.fuzz(hc=[400, 404]):
         print(r)
     
     for i in page['pages']:
@@ -100,6 +100,7 @@ def fuzzing_component2(tasks):
     session = authorization()
     
     for method in tasks['methods']:
+        print(method['method'])
         if method['method'] == 'get' and not tasks['is_changeable']:
             params = method['queryParameters']
             for i in params:
@@ -110,7 +111,7 @@ def fuzzing_component2(tasks):
                                               method='GET').get_payload(req_types)
                 
                 print(url)
-                for r in fuzz_sess.fuzz():
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
 
         elif method['method'] == 'get' and tasks['is_changeable']:
@@ -124,7 +125,7 @@ def fuzzing_component2(tasks):
                                               method='GET').get_payload(req_types)
                 
                 print(url)
-                for r in fuzz_sess.fuzz(hc=[200, 400]):
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
                     
             uri = urllib.parse.quote(parse_params(params), safe='=&~._')
@@ -135,7 +136,7 @@ def fuzzing_component2(tasks):
                                           method='GET').get_payload(req_types)
 
             print(url)
-            for r in fuzz_sess.fuzz(hc=[200, 400]):
+            for r in fuzz_sess.fuzz(hc=[400, 404]):
                 print(r)
                 
         elif method['method'] == 'post' and not tasks['is_changeable']:
@@ -151,7 +152,7 @@ def fuzzing_component2(tasks):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=[200, 400]):
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
                     
             for i in params_body:
@@ -164,7 +165,7 @@ def fuzzing_component2(tasks):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz():
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
                     
         elif method['method'] == 'post' and tasks['is_changeable']:
@@ -181,7 +182,7 @@ def fuzzing_component2(tasks):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz():
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
                     
             for i in params_query:
@@ -195,7 +196,7 @@ def fuzzing_component2(tasks):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz():
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
 
             uri = urllib.parse.quote(parse_params(params_query), safe='=&~.')
@@ -208,7 +209,7 @@ def fuzzing_component2(tasks):
                                           method='POST').get_payload(req_types)
             
             print(url, postdata)
-            for r in fuzz_sess.fuzz():
+            for r in fuzz_sess.fuzz(hc=[400, 404]):
                 print(r)
                 
         elif method['method'] == 'put' and not tasks['is_changeable']:
@@ -224,10 +225,10 @@ def fuzzing_component2(tasks):
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               postdata=postdata,
-                                              method='POST').get_payload(req_types)
+                                              method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=[200, 400]):
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
                     
             for i in params_body:
@@ -240,7 +241,7 @@ def fuzzing_component2(tasks):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz():
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
                     
         elif method['method'] == 'put' and tasks['is_changeable']:
@@ -261,7 +262,7 @@ def fuzzing_component2(tasks):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz():
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
                     
             for i in params_query:
@@ -275,7 +276,7 @@ def fuzzing_component2(tasks):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz():
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
 
             uri = urllib.parse.quote(parse_params(params_query), safe='=&~.')
@@ -288,7 +289,7 @@ def fuzzing_component2(tasks):
                                           method='PUT').get_payload(req_types)
             
             print(url, postdata)
-            for r in fuzz_sess.fuzz():
+            for r in fuzz_sess.fuzz(hc=[400, 404]):
                 print(r)
                 
         elif method['method'] == 'delete':
@@ -298,7 +299,7 @@ def fuzzing_component2(tasks):
                                           method='DELETE').get_payload(req_types)
             
             print(url)
-            for r in fuzz_sess.fuzz():
+            for r in fuzz_sess.fuzz(hc=[400, 404]):
                 print(r)
         
         for i in tasks['pages']:

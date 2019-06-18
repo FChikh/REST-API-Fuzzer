@@ -1,7 +1,7 @@
 import random
 import rstr
 
-domain = 'https://resumecreator.ru'
+domain = 'https://mc-ks-master.msp.ru.corp.acronis.com'
 
 req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
              random.randint(10 ** 50, 10 ** 100),
