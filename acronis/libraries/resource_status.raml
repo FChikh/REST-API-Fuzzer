@@ -1,0 +1,18 @@
+#%RAML 1.0 Library
+
+usage: Base types for alerts management
+uses:
+  alert: alert.raml
+
+types:
+  ResourceStatus:
+    properties:
+      id:
+        type: string
+        description: ID of resource
+      severity:
+        type: alert.Severity
+        description: maximum severiy of alert for this resource
+      alert?:
+        type: alert.AlertView
+        description: most recent alert with maximum severity for this resource

@@ -4,7 +4,8 @@ This is the prototype of intelligent fuzzer for REST API, which was created duri
 
 ## How it works:
 * It analyzes RAML specification for your API
-* It has 2 fuzzing sessions. Firstly, random routing. Simply going to popular routes. Secondly, GET & POST params fuzzing. 
+* It has 2 fuzzing sessions. Firstly, random routing. Simply going to popular routes. Secondly, GET & POST params fuzzing, 
+based on what it found in your RAML specification. 
 
 
 

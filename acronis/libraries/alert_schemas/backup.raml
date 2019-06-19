@@ -1,0 +1,81 @@
+#%RAML 1.0 Library
+
+usage: Schemas of alerts with backup specific
+uses:
+  alert: ../alert.raml
+
+types:
+  BackupContext:
+    type: object
+    properties:
+      resourceId: string
+      planId: string
+
+  PlannedBackupDetails:
+    type: object
+    properties:
+      backupLocations:
+        type: array
+        items:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [unknown, local_folder, network_share, ftp, sftp, cd, tape,
+                    storage_server, asz, removable_drive, online, nfs_share,
+                    esx, unrecognized]
+            displayName: string
+      backupSources: string[]
+      backupSourcesType:
+        type: string
+        enum: [unknown, files, disks, machines, mssql, systemState, exchange,
+              msexchangeMailbox, virtualizationHost]
+      resourceName: string
+      planName: string
+
+  LaunchedBackupDetails:
+    type: PlannedBackupDetails
+    properties:
+      activityId: string
+      activityName: string
+
+################################################################################
+# Backup alert schemas
+################################################################################
+
+  BackupFailedAlert:
+    type: alert.Alert
+    description: Alert must be raised if backup failed
+    properties:
+      type:
+        enum: [BackupFailed]
+      context: BackupContext
+      details:
+        type: LaunchedBackupDetails
+        properties:
+          error:
+            type: object
+            schema: common.Error
+
+  BackupCanceledAlert:
+    type: alert.Alert
+    description: Alert must be raised if backup was canceled by user
+    properties:
+      type:
+        enum: [BackupCanceled]
+      context: BackupContext
+      details: LaunchedBackupDetails
+
+  BackupDidNotStartAlert:
+    type: alert.Alert
+    description: |
+      Alert must be raised if backup was planned by schedule, but did not start.
+      This one signalized, that there are problems in scheduler.
+    properties:
+      type:
+        enum: [BackupDidNotStart]
+      context: BackupContext
+      details: PlannedBackupDetails
+
+  All:
+    enum: [BackupFailedAlert, BackupCanceledAlert, BackupDidNotStartAlert]
