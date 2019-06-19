@@ -30,11 +30,11 @@ def authorization():
     headers = {'Content-type': 'application/json',
                'Accept': 'text/plain',
                'Content-Encoding': 'utf-8'}
-    session.post('https://mc-w5vz-1306.msp.ru.corp.acronis.com/api/1/login',
+    session.post(domain + '/api/1/login',
                  data=json.dumps({"username": 'root', "password": 'root'}),
                  verify=False,
                  headers=headers)
-    session.get('https://mc-w5vz-1306.msp.ru.corp.acronis.com/bc',
+    session.get(domain + '/bc',
                 verify=False)
     return session
 
@@ -86,65 +86,73 @@ def fuzzing_component1(page):
     fuzz_sess = wfuzz.FuzzSession(url=url,
                                   cookie=convert_cookies_format(session.cookies.get_dict()),
                                   method='GET',
+                                  rleve='depth',
                                   payloads=[("file", dict(fn="big.txt"))])
-    
+
     print(url)
-    for r in fuzz_sess.fuzz(hc=[400, 404]):
+    for r in fuzz_sess.fuzz(hc=[404]):
         print(r)
     
     for i in page['pages']:
         fuzzing_component1(i)
 
 
-def fuzzing_component2(tasks):
+def fuzzing_component2(page):
     session = authorization()
+
+    ignored_codes = []
+    try:
+        for response in page['responses']:
+            ignored_codes.append(response.code)
+    except KeyError:
+        pass
     
-    for method in tasks['methods']:
+    for method in page['methods']:
         print(method['method'])
-        if method['method'] == 'get' and not tasks['is_changeable']:
+        if method['method'] == 'get' and not page['is_changeable']:
             params = method['queryParameters']
             for i in params:
                 uri = urllib.parse.quote(parse_params(params, i), safe='=&~._')
-                url = domain + tasks['uri'] + '?' + uri + i['name'] + '=FUZZ'
+                url = domain + page['uri'] + '?' + uri + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               method='GET').get_payload(req_types)
                 
                 print(url)
-                for r in fuzz_sess.fuzz(hc=[400, 404]):
+                for r in fuzz_sess.fuzz(hc=ignored_codes):
                     print(r)
 
-        elif method['method'] == 'get' and tasks['is_changeable']:
+        elif method['method'] == 'get' and page['is_changeable']:
             params = method['queryParameters']
             for i in params:
                 uri = urllib.parse.quote(parse_params(params, i), safe='=&~._')
-                url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'): tasks['uri'].index('}') + 1],
-                                                    rstr.xeger(types[tasks['type']])) + '?' + uri + i['name'] + '=FUZZ'
+                url = domain + page['uri'].replace(page['uri'][page['uri'].index('{'): page['uri'].index('}') + 1],
+                                                    rstr.xeger(types[page['type']])) + '?' + uri + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               method='GET').get_payload(req_types)
                 
                 print(url)
-                for r in fuzz_sess.fuzz(hc=[400, 404]):
+                for r in fuzz_sess.fuzz(hc=ignored_codes):
                     print(r)
                     
             uri = urllib.parse.quote(parse_params(params), safe='=&~._')
-            url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'): tasks['uri'].index('}') + 1],
+            url = domain + page['uri'].replace(page['uri'][page['uri'].index('{'): page['uri'].index('}') + 1],
                                                 'FUZZ') + '?' + uri
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(session.cookies.get_dict()),
                                           method='GET').get_payload(req_types)
 
             print(url)
-            for r in fuzz_sess.fuzz(hc=[400, 404]):
+            for r in fuzz_sess.fuzz(hc=ignored_codes):
                 print(r)
                 
-        elif method['method'] == 'post' and not tasks['is_changeable']:
+        elif method['method'] == 'post' and not page['is_changeable']:
             params_body = method['body']['properties']
             params_query = method['queryParameters']
             for i in params_query:
                 uri = urllib.parse.quote(parse_params(params_query, i), safe='=&~.')
-                url = domain + tasks['uri'] + '?' + uri + i['name'] + '=FUZZ'
+                url = domain + page['uri'] + '?' + uri + i['name'] + '=FUZZ'
                 postdata = parse_params(params_body)[:-1]
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
@@ -152,12 +160,12 @@ def fuzzing_component2(tasks):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=[400, 404]):
+                for r in fuzz_sess.fuzz(hc=ignored_codes):
                     print(r)
                     
             for i in params_body:
                 uri = urllib.parse.quote(parse_params(params_query),safe='=&~.')
-                url = domain + tasks['uri'] + '?' + uri
+                url = domain + page['uri'] + '?' + uri
                 postdata = parse_params(params_body, i) + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
@@ -165,16 +173,16 @@ def fuzzing_component2(tasks):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=[400, 404]):
+                for r in fuzz_sess.fuzz(hc=ignored_codes):
                     print(r)
                     
-        elif method['method'] == 'post' and tasks['is_changeable']:
+        elif method['method'] == 'post' and page['is_changeable']:
             params_body = method['body']['properties']
             params_query = method['queryParameters']
             for i in params_body:
                 uri = urllib.parse.quote(parse_params(params_query), safe='=&~.')
-                url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'): tasks['uri'].index('}') + 1],
-                                                    rstr.xeger(types[tasks['type']])) + '?' + uri
+                url = domain + page['uri'].replace(page['uri'][page['uri'].index('{'): page['uri'].index('}') + 1],
+                                                    rstr.xeger(types[page['type']])) + '?' + uri
                 postdata = parse_params(params_body, i) + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
@@ -182,13 +190,13 @@ def fuzzing_component2(tasks):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=[400, 404]):
+                for r in fuzz_sess.fuzz(hc=ignored_codes):
                     print(r)
                     
             for i in params_query:
                 uri = urllib.parse.quote(parse_params(params_query, i), safe='=&~.')
-                url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'):tasks['uri'].index('}') + 1],
-                                                    rstr.xeger(types[tasks['type']])) + '?' + uri + i['name'] + '=FUZZ'
+                url = domain + page['uri'].replace(page['uri'][page['uri'].index('{'):page['uri'].index('}') + 1],
+                                                    rstr.xeger(types[page['type']])) + '?' + uri + i['name'] + '=FUZZ'
                 postdata = parse_params(params_body)
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
@@ -196,11 +204,11 @@ def fuzzing_component2(tasks):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=[400, 404]):
+                for r in fuzz_sess.fuzz(hc=ignored_codes):
                     print(r)
 
             uri = urllib.parse.quote(parse_params(params_query), safe='=&~.')
-            url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'):tasks['uri'].index('}') + 1],
+            url = domain + page['uri'].replace(page['uri'][page['uri'].index('{'):page['uri'].index('}') + 1],
                                                 'FUZZ') + '?' + uri
             postdata = parse_params(params_body)
             fuzz_sess = wfuzz.FuzzSession(url=url,
@@ -209,10 +217,10 @@ def fuzzing_component2(tasks):
                                           method='POST').get_payload(req_types)
             
             print(url, postdata)
-            for r in fuzz_sess.fuzz(hc=[400, 404]):
+            for r in fuzz_sess.fuzz(hc=ignored_codes):
                 print(r)
                 
-        elif method['method'] == 'put' and not tasks['is_changeable']:
+        elif method['method'] == 'put' and not page['is_changeable']:
             try:
                 params_body = method['body']['properties']
             except KeyError:
@@ -220,7 +228,7 @@ def fuzzing_component2(tasks):
             params_query = method['queryParameters']
             for i in params_query:
                 uri = urllib.parse.quote(parse_params(params_query, i), safe='=&~.')
-                url = domain + tasks['uri'] + '?' + uri
+                url = domain + page['uri'] + '?' + uri
                 postdata = parse_params(params_body)[:-1]
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
@@ -228,12 +236,12 @@ def fuzzing_component2(tasks):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=[400, 404]):
+                for r in fuzz_sess.fuzz(hc=ignored_codes):
                     print(r)
                     
             for i in params_body:
                 uri = urllib.parse.quote(parse_params(params_query),safe='=&~.')
-                url = domain + tasks['uri'] + '?' + uri
+                url = domain + page['uri'] + '?' + uri
                 postdata = parse_params(params_body, i) + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
@@ -241,10 +249,10 @@ def fuzzing_component2(tasks):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=[400, 404]):
+                for r in fuzz_sess.fuzz(hc=ignored_codes):
                     print(r)
                     
-        elif method['method'] == 'put' and tasks['is_changeable']:
+        elif method['method'] == 'put' and page['is_changeable']:
             print('put')
             try:
                 params_body = method['body']['properties']
@@ -253,8 +261,8 @@ def fuzzing_component2(tasks):
             params_query = method['queryParameters']
             for i in params_body:
                 uri = urllib.parse.quote(parse_params(params_query),safe='=&~.')
-                url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'): tasks['uri'].index('}') + 1],
-                                                    rstr.xeger(types[tasks['type']])) + '?' + uri
+                url = domain + page['uri'].replace(page['uri'][page['uri'].index('{'): page['uri'].index('}') + 1],
+                                                    rstr.xeger(types[page['type']])) + '?' + uri
                 postdata = parse_params(params_body, i) + i['name'] + '=FUZZ'
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
@@ -262,13 +270,13 @@ def fuzzing_component2(tasks):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=[400, 404]):
+                for r in fuzz_sess.fuzz(hc=ignored_codes):
                     print(r)
                     
             for i in params_query:
                 uri = urllib.parse.quote(parse_params(params_query, i),safe='=&~.')
-                url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'): tasks['uri'].index('}') + 1],
-                                                    rstr.xeger(types[tasks['type']])) + '?' + uri + i['name'] + '=FUZZ'
+                url = domain + page['uri'].replace(page['uri'][page['uri'].index('{'): page['uri'].index('}') + 1],
+                                                    rstr.xeger(types[page['type']])) + '?' + uri + i['name'] + '=FUZZ'
                 postdata = parse_params(params_body)
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
@@ -276,11 +284,11 @@ def fuzzing_component2(tasks):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=[400, 404]):
+                for r in fuzz_sess.fuzz(hc=ignored_codes):
                     print(r)
 
             uri = urllib.parse.quote(parse_params(params_query), safe='=&~.')
-            url = domain + tasks['uri'].replace(tasks['uri'][tasks['uri'].index('{'): tasks['uri'].index('}') + 1],
+            url = domain + page['uri'].replace(page['uri'][page['uri'].index('{'): page['uri'].index('}') + 1],
                                                 'FUZZ') + '?' + uri
             postdata = parse_params(params_body)
             fuzz_sess = wfuzz.FuzzSession(url=url,
@@ -289,18 +297,18 @@ def fuzzing_component2(tasks):
                                           method='PUT').get_payload(req_types)
             
             print(url, postdata)
-            for r in fuzz_sess.fuzz(hc=[400, 404]):
+            for r in fuzz_sess.fuzz(hc=ignored_codes):
                 print(r)
                 
         elif method['method'] == 'delete':
-            url = domain + tasks['uri'].replace(tasks['relativeUri'], '/FUZZ')
+            url = domain + page['uri'].replace(page['relativeUri'], '/FUZZ')
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(session.cookies.get_dict()),
                                           method='DELETE').get_payload(req_types)
             
             print(url)
-            for r in fuzz_sess.fuzz(hc=[400, 404]):
+            for r in fuzz_sess.fuzz(hc=ignored_codes):
                 print(r)
         
-        for i in tasks['pages']:
+        for i in page['pages']:
             fuzzing_component2(i)

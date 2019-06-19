@@ -1,6 +1,5 @@
-from parser import fetch_parsed_data
+from py_parser import fetch_parsed_data
 from fuzzer import fuzzing_component1, fuzzing_component2
-
 import urllib3
 import sys
 import time

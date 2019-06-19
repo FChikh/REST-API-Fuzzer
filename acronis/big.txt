@@ -2399,7 +2399,6 @@ scuba1
 sean
 search
 seattle
-secció
 seccio
 seccion
 secret
