@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "issues": {
+      "description": "Array of issue descriptions.",
+      "type": "array",
+      "items": {
+        "description": "Describes one issue. Issue is a constraint violation.",
+        "type": "object",
+        "properties": {
+         "link": {
+            "description": "Link name or id, the constraint must be applied to.",
+            "type": "string"
+          },
+          "domain": {
+            "description": "Type of reason the constraint is originated from.",
+            "type": "string",
+            "enum": [ "Access", "Licensing" ]
+          },
+          "target": {
+            "description": "Path to or id of sub-resource, which the issue concerns. May be required for composite resources.",
+            "type": "string"
+          },
+          "severity": {
+            "description": "Degree of trouble brought by the issue.",
+            "type": "string",
+            "enum": [ "warning", "error" ]
+          },
+          "error": {
+            "$ref": "error.json"
+          }
+        },
+        "required": [
+          "target",
+          "severity",
+          "error"
+        ]
+      },
+      "minItems": 0
+    }
+  },
+  "type": "object",
+  "$ref": "#/definitions/issues"
+}

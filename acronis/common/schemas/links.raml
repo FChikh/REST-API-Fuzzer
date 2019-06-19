@@ -1,0 +1,17 @@
+#%RAML 1.0
+title: Link description
+version: 1.0
+mediaType: application/json
+
+types:
+  link:
+    type: object
+    properties:
+      rel: string
+      type?: string
+      href: string
+  domainObject:
+    type: object
+    properties:
+      _links?: link[]
+      _href?: string

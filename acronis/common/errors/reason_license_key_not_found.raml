@@ -1,0 +1,32 @@
+#%RAML 1.0 Library
+
+uses:
+  error: !include ../schemas/error.raml
+
+types:
+  ReasonLicenseKeyNotFound:
+    description: 'License {{id}} not found'
+    type: error.error
+    properties:
+      domain:
+        type: string
+        enum:
+          - Licensing
+        required: true
+      reason:
+        type: string
+        enum:
+          - ReasonLicenseKeyNotFound
+        required: false
+      code:
+        type: string
+        enum:
+          - ReasonLicenseKeyNotFound
+        required: true
+      context:
+        type: object
+        properties:
+          id:
+            type: string
+            required: true
+        required: true
