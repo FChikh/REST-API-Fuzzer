@@ -30,11 +30,11 @@ def authorization():
     headers = {'Content-type': 'application/json',
                'Accept': 'text/plain',
                'Content-Encoding': 'utf-8'}
-    session.post('https://mc-ks-master.msp.ru.corp.acronis.com/api/1/login',
+    session.post('https://mc-w5vz-1306.msp.ru.corp.acronis.com/api/1/login',
                  data=json.dumps({"username": 'root', "password": 'root'}),
                  verify=False,
                  headers=headers)
-    session.get('https://mc-ks-master.msp.ru.corp.acronis.com/bc',
+    session.get('https://mc-w5vz-1306.msp.ru.corp.acronis.com/bc',
                 verify=False)
     return session
 
