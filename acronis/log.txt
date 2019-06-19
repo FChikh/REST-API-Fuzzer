@@ -1,0 +1,10 @@
+<_io.TextIOWrapper name='log.txt' mode='w' encoding='UTF-8'>
+https://mc-w5vz-1306.msp.ru.corp.acronis.com/api/task_manager/v2/FUZZ
+00112:  C=200      0 L	       1 W	     46 Ch	  "activities"
+02216:  C=200      0 L	       1 W	    105 Ch	  "queues"
+02584:  C=200      0 L	       7 W	    283 Ch	  "status"
+02680:  C=200      0 L	       1 W	  59299 Ch	  "tasks"
+02976:  C=200      0 L	       1 W	     46 Ch	  "workflows"
+https://mc-w5vz-1306.msp.ru.corp.acronis.com/api/task_manager/v2/status/FUZZ
+https://mc-w5vz-1306.msp.ru.corp.acronis.com/api/task_manager/v2/queues/FUZZ
+https://mc-w5vz-1306.msp.ru.corp.acronis.com/api/task_manager/v2/queues/string/FUZZ
