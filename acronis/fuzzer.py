@@ -40,34 +40,34 @@ def authorize():
 
 
 def parse_params(params, fuzz=''):
-    result = ''
+    result = []
     for item in params:
         if item != fuzz and item['required']:
             if item['type'] == 'array':
                 for _ in range(random.randint(1, 20)):
                     if type(types[item['items']]) == dict:
                         for key, value in convert_types(types[item['items']]).items():
-                            result += key + '=' + rstr.xeger(value) + '&'
+                            result.append(key + '=' + rstr.xeger(value))
                     else:
-                        result += item['name'] + '=' + rstr.xeger(types[item['items']]) + '&'
+                        result.append(item['name'] + '=' + rstr.xeger(types[item['items']]))
                 continue
             
             if item['type'] == 'object':
                 for key, value in item['properties'].items():
                     if type(types[value]) == dict:
                         for key1, value1 in convert_types(types[value]).items():
-                            result += key1 + '=' + rstr.xeger(value1) + '&'
+                            result.append(key1 + '=' + rstr.xeger(value1))
                     else:
-                        result += key + '=' + rstr.xeger(types[value]) + '&'
+                        result.append(key + '=' + rstr.xeger(types[value]))
                 continue
 
             if type(types[item['type']]) == dict:
                 for key, value in convert_types(types[item['type']]).items():
-                    result += key + '=' + rstr.xeger(value) + '&'
+                    result.append(key + '=' + rstr.xeger(value))
             else:
-                result += item['name'] + '=' + rstr.xeger(types[item['type']]) + '&'
+                result.append(item['name'] + '=' + rstr.xeger(types[item['type']]))
                 
-    return result
+    return '&'.join(result)
 
 
 def fuzzing_component1(page):
