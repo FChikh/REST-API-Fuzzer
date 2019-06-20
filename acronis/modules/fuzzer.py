@@ -66,11 +66,11 @@ def parse_params(params, fuzz=''):
                     result.append(key + '=' + rstr.xeger(value))
             else:
                 result.append(item['name'] + '=' + rstr.xeger(types[item['type']]))
-                
+
     return '&'.join(result)
 
 
-def fuzz_first_step(page, hc, sc):
+def fuzz_first_step(page, specification, specification_codes):
     session = authorize()
     url = domain
 
@@ -90,14 +90,26 @@ def fuzz_first_step(page, hc, sc):
                                   payloads=[("file", dict(fn="big.txt"))])
 
     print(url)
-    for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-        print(r)
-    
+    if not specification_codes and specification:
+        for response in page['methods']['responses']:
+            specification_codes.append(response)
+    else:
+        pass
+    if specification == 'hc':
+        for r in fuzz_sess.fuzz(hc=specification_codes):
+            print(r)
+    elif specification == 'sc':
+        for r in fuzz_sess.fuzz(sc=specification_codes):
+            print(r)
+    else:
+        for r in fuzz_sess.fuzz():
+            print(r)
+
     for i in page['pages']:
-        fuzz_first_step(i)
+        fuzz_first_step(i, specification, specification_codes)
 
 
-def fuzz_second_step(page, hc, sc):
+def fuzz_second_step(page, specification, specification_codes):
     session = authorize()
 
     for method in page['methods']:
@@ -112,8 +124,20 @@ def fuzz_second_step(page, hc, sc):
                                               method='GET').get_payload(req_types)
 
                 print(url)
-                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-                    print(r)
+                if not specification_codes and specification:
+                    for response in method['responses']:
+                        specification_codes.append(response)
+                else:
+                    pass
+                if specification == 'hc':
+                    for r in fuzz_sess.fuzz(hc=specification_codes):
+                        print(r)
+                elif specification == 'sc':
+                    for r in fuzz_sess.fuzz(sc=specification_codes):
+                        print(r)
+                else:
+                    for r in fuzz_sess.fuzz():
+                        print(r)
 
         elif method['method'] == 'get' and page['is_changeable']:
             params = method['queryParameters']
@@ -126,19 +150,43 @@ def fuzz_second_step(page, hc, sc):
                                               method='GET').get_payload(req_types)
                 
                 print(url)
-                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-                    print(r)
+                if not specification_codes and specification:
+                    for response in method['responses']:
+                        specification_codes.append(response)
+                else:
+                    pass
+                if specification == 'hc':
+                    for r in fuzz_sess.fuzz(hc=specification_codes):
+                        print(r)
+                elif specification == 'sc':
+                    for r in fuzz_sess.fuzz(sc=specification_codes):
+                        print(r)
+                else:
+                    for r in fuzz_sess.fuzz():
+                        print(r)
                     
             uri = urllib.parse.quote(parse_params(params), safe='=&~._')
             url = domain + page['uri'].replace(page['uri'][page['uri'].index('{'): page['uri'].index('}') + 1],
-                                                'FUZZ') + '?' + uri
+                                               'FUZZ') + '?' + uri
             fuzz_sess = wfuzz.FuzzSession(url=url,
                                           cookie=convert_cookies_format(session.cookies.get_dict()),
                                           method='GET').get_payload(req_types)
 
             print(url)
-            for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-                print(r)
+            if not specification_codes and specification:
+                for response in method['responses']:
+                    specification_codes.append(response)
+            else:
+                pass
+            if specification == 'hc':
+                for r in fuzz_sess.fuzz(hc=specification_codes):
+                    print(r)
+            elif specification == 'sc':
+                for r in fuzz_sess.fuzz(sc=specification_codes):
+                    print(r)
+            else:
+                for r in fuzz_sess.fuzz():
+                    print(r)
                 
         elif method['method'] == 'post' and not page['is_changeable']:
             params_body = method['body']['properties']
@@ -153,8 +201,20 @@ def fuzz_second_step(page, hc, sc):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-                    print(r)
+                if not specification_codes and specification:
+                    for response in method['responses']:
+                        specification_codes.append(response)
+                else:
+                    pass
+                if specification == 'hc':
+                    for r in fuzz_sess.fuzz(hc=specification_codes):
+                        print(r)
+                elif specification == 'sc':
+                    for r in fuzz_sess.fuzz(sc=specification_codes):
+                        print(r)
+                else:
+                    for r in fuzz_sess.fuzz():
+                        print(r)
                     
             for item in params_body:
                 uri = urllib.parse.quote(parse_params(params_query),safe='=&~.')
@@ -166,8 +226,20 @@ def fuzz_second_step(page, hc, sc):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-                    print(r)
+                if not specification_codes and specification:
+                    for response in method['responses']:
+                        specification_codes.append(response)
+                else:
+                    pass
+                if specification == 'hc':
+                    for r in fuzz_sess.fuzz(hc=specification_codes):
+                        print(r)
+                elif specification == 'sc':
+                    for r in fuzz_sess.fuzz(sc=specification_codes):
+                        print(r)
+                else:
+                    for r in fuzz_sess.fuzz():
+                        print(r)
                     
         elif method['method'] == 'post' and page['is_changeable']:
             params_body = method['body']['properties']
@@ -183,8 +255,20 @@ def fuzz_second_step(page, hc, sc):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-                    print(r)
+                if not specification_codes and specification:
+                    for response in method['responses']:
+                        specification_codes.append(response)
+                else:
+                    pass
+                if specification == 'hc':
+                    for r in fuzz_sess.fuzz(hc=specification_codes):
+                        print(r)
+                elif specification == 'sc':
+                    for r in fuzz_sess.fuzz(sc=specification_codes):
+                        print(r)
+                else:
+                    for r in fuzz_sess.fuzz():
+                        print(r)
                     
             for item in params_query:
                 uri = urllib.parse.quote(parse_params(params_query, item), safe='=&~.')
@@ -197,8 +281,20 @@ def fuzz_second_step(page, hc, sc):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-                    print(r)
+                if not specification_codes and specification:
+                    for response in method['responses']:
+                        specification_codes.append(response)
+                else:
+                    pass
+                if specification == 'hc':
+                    for r in fuzz_sess.fuzz(hc=specification_codes):
+                        print(r)
+                elif specification == 'sc':
+                    for r in fuzz_sess.fuzz(sc=specification_codes):
+                        print(r)
+                else:
+                    for r in fuzz_sess.fuzz():
+                        print(r)
 
             uri = urllib.parse.quote(parse_params(params_query), safe='=&~.')
             url = domain + page['uri'].replace(page['uri'][page['uri'].index('{'):page['uri'].index('}') + 1],
@@ -210,8 +306,20 @@ def fuzz_second_step(page, hc, sc):
                                           method='POST').get_payload(req_types)
             
             print(url, postdata)
-            for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-                print(r)
+            if not specification_codes and specification:
+                for response in method['responses']:
+                    specification_codes.append(response)
+            else:
+                pass
+            if specification == 'hc':
+                for r in fuzz_sess.fuzz(hc=specification_codes):
+                    print(r)
+            elif specification == 'sc':
+                for r in fuzz_sess.fuzz(sc=specification_codes):
+                    print(r)
+            else:
+                for r in fuzz_sess.fuzz():
+                    print(r)
                 
         elif method['method'] == 'put' and not page['is_changeable']:
             try:
@@ -229,8 +337,20 @@ def fuzz_second_step(page, hc, sc):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-                    print(r)
+                if not specification_codes and specification:
+                    for response in method['responses']:
+                        specification_codes.append(response)
+                else:
+                    pass
+                if specification == 'hc':
+                    for r in fuzz_sess.fuzz(hc=specification_codes):
+                        print(r)
+                elif specification == 'sc':
+                    for r in fuzz_sess.fuzz(sc=specification_codes):
+                        print(r)
+                else:
+                    for r in fuzz_sess.fuzz():
+                        print(r)
 
             for item in params_body:
                 uri = urllib.parse.quote(parse_params(params_query),safe='=&~.')
@@ -242,8 +362,20 @@ def fuzz_second_step(page, hc, sc):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-                    print(r)
+                if not specification_codes and specification:
+                    for response in method['responses']:
+                        specification_codes.append(response)
+                else:
+                    pass
+                if specification == 'hc':
+                    for r in fuzz_sess.fuzz(hc=specification_codes):
+                        print(r)
+                elif specification == 'sc':
+                    for r in fuzz_sess.fuzz(sc=specification_codes):
+                        print(r)
+                else:
+                    for r in fuzz_sess.fuzz():
+                        print(r)
                     
         elif method['method'] == 'put' and page['is_changeable']:
             print('put')
@@ -263,8 +395,20 @@ def fuzz_second_step(page, hc, sc):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-                    print(r)
+                if not specification_codes and specification:
+                    for response in method['responses']:
+                        specification_codes.append(response)
+                else:
+                    pass
+                if specification == 'hc':
+                    for r in fuzz_sess.fuzz(hc=specification_codes):
+                        print(r)
+                elif specification == 'sc':
+                    for r in fuzz_sess.fuzz(sc=specification_codes):
+                        print(r)
+                else:
+                    for r in fuzz_sess.fuzz():
+                        print(r)
                     
             for item in params_query:
                 uri = urllib.parse.quote(parse_params(params_query, item),safe='=&~.')
@@ -277,8 +421,20 @@ def fuzz_second_step(page, hc, sc):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-                    print(r)
+                if not specification_codes and specification:
+                    for response in method['responses']:
+                        specification_codes.append(response)
+                else:
+                    pass
+                if specification == 'hc':
+                    for r in fuzz_sess.fuzz(hc=specification_codes):
+                        print(r)
+                elif specification == 'sc':
+                    for r in fuzz_sess.fuzz(sc=specification_codes):
+                        print(r)
+                else:
+                    for r in fuzz_sess.fuzz():
+                        print(r)
 
             uri = urllib.parse.quote(parse_params(params_query), safe='=&~.')
             url = domain + page['uri'].replace(page['uri'][page['uri'].index('{'): page['uri'].index('}') + 1],
@@ -288,10 +444,22 @@ def fuzz_second_step(page, hc, sc):
                                           cookie=convert_cookies_format(session.cookies.get_dict()),
                                           postdata=postdata,
                                           method='PUT').get_payload(req_types)
-            
+
             print(url, postdata)
-            for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-                print(r)
+            if not specification_codes and specification:
+                for response in method['responses']:
+                    specification_codes.append(response)
+            else:
+                pass
+            if specification == 'hc':
+                for r in fuzz_sess.fuzz(hc=specification_codes):
+                    print(r)
+            elif specification == 'sc':
+                for r in fuzz_sess.fuzz(sc=specification_codes):
+                    print(r)
+            else:
+                for r in fuzz_sess.fuzz():
+                    print(r)
                 
         elif method['method'] == 'delete':
             url = domain + page['uri'].replace(page['relativeUri'], '/FUZZ')
@@ -300,14 +468,26 @@ def fuzz_second_step(page, hc, sc):
                                           method='DELETE').get_payload(req_types)
             
             print(url)
-            for r in fuzz_sess.fuzz(hc=hc, sc=sc):
-                print(r)
+            if not specification_codes and specification:
+                for response in method['responses']:
+                    specification_codes.append(response)
+            else:
+                pass
+            if specification == 'hc':
+                for r in fuzz_sess.fuzz(hc=specification_codes):
+                    print(r)
+            elif specification == 'sc':
+                for r in fuzz_sess.fuzz(sc=specification_codes):
+                    print(r)
+            else:
+                for r in fuzz_sess.fuzz():
+                    print(r)
         
         for item in page['pages']:
-            fuzz_second_step(item)
+            fuzz_second_step(item, hc, sc)
 
 
-def fuzz(data, hc, sc):
-    fuzz_first_step(data, hc, sc)
+def fuzz(data, specification, specification_codes):
+    fuzz_first_step(data, specification, specification_codes)
     for page in data['pages']:
-        fuzz_second_step(page, hc, sc)
+        fuzz_second_step(page, specification, specification_codes)
