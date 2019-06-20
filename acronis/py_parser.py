@@ -81,7 +81,7 @@ def parse(parsed_page, page, data):
                                 tmp_method['body']['properties'].append(tmp_dict)
                             break
                 except KeyError:
-                  pass
+                    pass
             except KeyError:
                 tmp_method['body'] = {}
             tmp_method['responses'] = []
@@ -106,8 +106,8 @@ def parse(parsed_page, page, data):
         pass
 
 
-def fetch_parsed_data():
-    os.system('node parser.js')
+def fetch_parsed_data(path):
+    os.system('node parser.js ' + path)
     with open('parsed.json', 'r') as json_file:
         data = json.load(json_file)
 

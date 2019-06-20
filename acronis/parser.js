@@ -2,7 +2,8 @@ var path = require("path");
 var raml1Parser = require('../js-parser/dist/index');
 var fs = require("fs")
 
-var api = raml1Parser.loadApiSync(path.resolve(__dirname, "./api.raml"),{
+
+var api = raml1Parser.loadApiSync(path.resolve(process.argv[2]),{
 
 	fsResolver: {
 

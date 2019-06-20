@@ -26,7 +26,16 @@ fuzzer:
       """Authorize on server* and return session.
          Return:
             session(Session) - object of current session"""
-   def
+   def parse_params(params, fuzz=''):
+      """Parse queryParameters and return result
+         Arguments:
+            params(array) - array of queryParameters
+            fuzz(dict/string) - contain queryParameter or empty string
+         Return:
+            result(string) - string of format 'key=value&key=value&...'"""
+   def fuzz_first_step(page):
+      """Fuzz server and look for undeclared pages.
+         """
 
 ~~~~~~~~~~~~~~~~~~
 py_parser:
@@ -41,8 +50,8 @@ py_parser:
             page(dict) - dictionary that contains usable data
             data(dict) - dictionary that contains data from JSON"""
    def fetch_parsed_data():
-      """Fetch data from json and return it.
-         Use function parse to fetch data from JSON.
+      """Fetch data from json, parse it and return parsed data.
+         Use function parse to parse data from JSON to usable format.
          Return:
             parsed_data(dict) - dictionary that contains usable data"""
 
