@@ -12,7 +12,7 @@ req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
              rstr.nonwhitespace(65, 256),
              rstr.letters(257, 2000), rstr.nonwhitespace(257, 2000),
              int(bool(random.getrandbits(1))),
-             'абвгдеёжзийклмнопрстуфхцчшщъыьэюя', '?keklol=rer']
+             'абвгдеёжзийклмнопрстуфхцчшщъыьэюя']
 
 types = {
     'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-['
