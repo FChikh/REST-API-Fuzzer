@@ -1,0 +1,32 @@
+#%RAML 1.0 Library
+
+uses:
+  error: !include ../schemas/error.raml
+
+types:
+  ReasonFeatureUnsupported:
+    description: 'Feature {{search_feature}} is not supported'
+    type: error.error
+    properties:
+      domain:
+        type: string
+        enum:
+          - Licensing
+        required: true
+      reason:
+        type: string
+        enum:
+          - ReasonFeatureUnsupported
+        required: false
+      code:
+        type: string
+        enum:
+          - ReasonFeatureUnsupported
+        required: true
+      context:
+        type: object
+        properties:
+          search_feature:
+            type: string
+            required: true
+        required: true

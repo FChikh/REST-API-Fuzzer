@@ -46,7 +46,7 @@ types:
   domainError:
     type: object
     description: Domain error
-    properties: 
+    properties:
       domain:
         type: string
       code:
@@ -55,7 +55,7 @@ types:
   collection:
     type: object
     description: A collection of entities
-    properties: 
+    properties:
       items:
         type: object[]
 
@@ -66,10 +66,10 @@ types:
   pagedCollection:
     type: [collection]
     description: A single page of a larger entity collection
-    properties: 
+    properties:
       cursors?:
         type: object
-        properties: 
+        properties:
           after?:
             type: pageToken
             description: page token pointing to the end of the page
@@ -83,7 +83,7 @@ types:
   queueStats:
     type: object
     description: Queue statistics
-    properties: 
+    properties:
       size:
         type: integer
         description: Enqueued task count
@@ -91,7 +91,7 @@ types:
   progress:
     type: object
     description: Progress value
-    properties: 
+    properties:
       total:
         type: integer
       current?:
@@ -100,7 +100,7 @@ types:
   actor:
     type: object
     description: Actor identity
-    properties: 
+    properties:
       id:
         type: string64
       clusterId?:
@@ -109,7 +109,7 @@ types:
   tenant:
     type: object
     description: Tenant identity
-    properties: 
+    properties:
       id:
         type: string64
       name?:
@@ -134,7 +134,7 @@ types:
   executionResult:
     type: object
     description: Execution result
-    properties: 
+    properties:
       code:
         type: resultCode
       error?:
@@ -152,7 +152,7 @@ types:
 
   linkedResource:
     type: object
-    properties: 
+    properties:
       id:
         type: string64
       type?:
@@ -163,7 +163,7 @@ types:
   workflowDefinition:
     type: object
     description: Workflow object definition
-    properties: 
+    properties:
       uuid?:
         type: uuid
         description: Workflow object unique identifier, server-generated if not set
@@ -206,7 +206,7 @@ types:
   taskDefinition:
     type: object
     description: Task object definition
-    properties: 
+    properties:
       uuid?:
         type: uuid
         description: Task object unique identifier, server-generated if not set
@@ -254,7 +254,7 @@ types:
       affinity?:
         type: object
         description: Task affinity
-        properties: 
+        properties:
           agentId?:
             type: string64
             description: Limit task affinity to this agent
@@ -270,7 +270,7 @@ types:
       context?:
         type: blob
         description: Task context
-           
+
   task:
     type: [taskDefinition]
     description: Task object
@@ -355,7 +355,7 @@ types:
       details?:
         type: blob
         description: Activity details
-            
+
   activity:
     type: [activityDefinition]
     description: Activity object
@@ -410,7 +410,7 @@ types:
   blockerDefinition:
     type: object
     description: Definition of task blocker
-    properties: 
+    properties:
       uuid?:
         type: uuid
         description: Blocker object unique identifier, server-generated if not set
@@ -425,7 +425,7 @@ types:
   blocker:
     type: [blockerDefinition]
     description: Blocker object
-    properties: 
+    properties:
       id:
         type: integer
         description: Blocker identifier (server-generated)
@@ -438,7 +438,7 @@ types:
   eventDefinition:
     type: object
     description: Event occurred during a task execution
-    properties: 
+    properties:
       code:
         type: integer
       taskId:
@@ -458,7 +458,7 @@ types:
   event:
     type: [eventDefinition]
     description: Received event
-    properties: 
+    properties:
       receivedAt:
         type: time
       tenant:
@@ -517,7 +517,7 @@ types:
 /status:
   get:
     description: Show current node status
-    responses: 
+    responses:
       200:
         body:
           application/json:
@@ -528,9 +528,9 @@ types:
     is: [ScopedByContextTenant]
     (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
     description: List queue names
-    responses: 
+    responses:
       200:
-        body: 
+        body:
           application/json:
             type: collection
             description: a collection of queue names
@@ -540,51 +540,51 @@ types:
       is: [ScopedByContextTenant]
       (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
       description: Show queue stats
-      responses: 
+      responses:
         200:
-          body: 
+          body:
             application/json:
               type: queueStats
         404:
           description: Queue does not exist
-          body: 
+          body:
             application/json:
               type: domainError
 
 /workflows:
   is: [ScopedByContextTenant]
-  post:  
+  post:
     (AllowedTo): ["task_manager::admin", "task_manager::issuer"]
     description: Register a new workflow
-    body: 
+    body:
       application/json:
         type: workflowDefinition
-    queryParameters: 
+    queryParameters:
       noreply?:
         type: integer
         description: Indication that no body is required in successful reply
-    responses: 
+    responses:
       201:
         description: Workflow is registered
-        body: 
+        body:
           application/json:
             type: workflow
       204:
         description: Workflow is registered and no reply body is required
       400:
         description: Bad user input
-        body: 
+        body:
           application/json:
             type: domainError
       500:
         description: Server error
-        body: 
+        body:
           application/json:
             type: domainError
   get:
     (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
     description: Get a list of workflows
-    queryParameters: 
+    queryParameters:
       limit?:
         type: integer
         description: Page size
@@ -629,12 +629,12 @@ types:
             description: workflow collection
       400:
         description: Bad user input
-        body: 
+        body:
           application/json:
             type: domainError
       500:
         description: Server error
-        body: 
+        body:
           application/json:
             type: domainError
 
@@ -642,24 +642,24 @@ types:
     get:
       (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
       description: Get a single workflow object
-      responses: 
+      responses:
         200:
           body:
             application/json:
               type: workflow
         404:
           description: Workflow does not exist
-          body: 
+          body:
             application/json:
               type: domainError
         400:
           description: Bad user input
-          body: 
+          body:
             application/json:
               type: domainError
         500:
           description: Server error
-          body: 
+          body:
             application/json:
               type: domainError
 
@@ -667,30 +667,30 @@ types:
       put:
         (AllowedTo): ["task_manager::admin", "task_manager::issuer"]
         description: Set workflow progress
-        queryParameters: 
+        queryParameters:
           value:
             type: integer
-        responses: 
+        responses:
           204:
             description: OK
           409:
             description: Data conflict
-            body: 
+            body:
               application/json:
                 type: domainError
           404:
             description: Workflow does not exist
-            body: 
+            body:
               application/json:
                 type: domainError
           400:
             description: Bad user input
-            body: 
+            body:
               application/json:
                 type: domainError
           500:
             description: Server error
-            body: 
+            body:
               application/json:
                 type: domainError
 
@@ -698,30 +698,30 @@ types:
       put:
         (AllowedTo): ["task_manager::admin", "task_manager::issuer"]
         description: Complete workflow
-        body: 
+        body:
           application/json:
             type: executionResult
-        responses: 
+        responses:
           204:
             description: OK
           409:
             description: Data conflict
-            body: 
+            body:
               application/json:
                 type: domainError
           404:
             description: Workflow does not exist
-            body: 
+            body:
               application/json:
                 type: domainError
           400:
             description: Bad user input
-            body: 
+            body:
               application/json:
                 type: domainError
           500:
             description: Server error
-            body: 
+            body:
               application/json:
                 type: domainError
 
@@ -730,29 +730,29 @@ types:
   post:
     (AllowedTo): ["task_manager::admin", "task_manager::issuer"]
     description: Register a new task
-    body: 
+    body:
       application/json:
         type: taskDefinition
-    queryParameters: 
+    queryParameters:
       noreply?:
         type: integer
         description: Indication that no body is required in successful reply
-    responses: 
+    responses:
       201:
         description: Task is registered
-        body: 
+        body:
           application/json:
             type: taskShort
       204:
         description: Task is registered and no reply body is required
       400:
         description: Bad user input
-        body: 
+        body:
           application/json:
             type: domainError
       500:
         description: Server error
-        body: 
+        body:
           application/json:
             type: domainError
 
@@ -809,7 +809,7 @@ types:
         description: Resource id filter, multiple entries are accepted
       resourceName?:
         type: string256
-        description: Resource name filter, multiple entries are accepted, 'like' is supported in the form 'like(value)' 
+        description: Resource name filter, multiple entries are accepted, 'like' is supported in the form 'like(value)'
       resouceType?:
         type: string64
         description: Resource type filter, multiple entries are accepted
@@ -848,12 +848,12 @@ types:
             description: task collection
       400:
         description: Bad user input
-        body: 
+        body:
           application/json:
             type: domainError
       500:
         description: Server error
-        body: 
+        body:
           application/json:
             type: domainError
 
@@ -861,72 +861,72 @@ types:
     get:
       (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
       description: Get the single task
-      queryParameters: 
+      queryParameters:
         lod?:
           type: levelOfDetail
-      responses: 
+      responses:
         200:
           body:
             application/json:
               type: task
         404:
           description: Task does not exist
-          body: 
+          body:
             application/json:
               type: domainError
         400:
           description: Bad user input
-          body: 
+          body:
             application/json:
               type: domainError
         500:
           description: Server error
-          body: 
+          body:
             application/json:
               type: domainError
 
     delete:
       (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
       description: Cancel the task
-      responses: 
+      responses:
         204:
           description: OK
         404:
           description: Task does not exist
-          body: 
+          body:
             application/json:
               type: domainError
         409:
           description: Data conflict
-          body: 
+          body:
             application/json:
               type: domainError
         500:
           description: Server error
-          body: 
+          body:
             application/json:
               type: domainError
-    
+
     /started:
       put:
         (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
         description: Confirm the task is started
-        responses: 
+        responses:
           204:
             description: OK
           404:
             description: Task does not exist
-            body: 
+            body:
               application/json:
                 type: domainError
           409:
             description: Data conflict
-            body: 
+            body:
               application/json:
                 type: domainError
           500:
             description: Server error
-            body: 
+            body:
               application/json:
                 type: domainError
 
@@ -934,30 +934,30 @@ types:
       put:
         (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
         description: Set task progress
-        queryParameters: 
+        queryParameters:
           value:
             type: integer
-        responses: 
+        responses:
           204:
             description: OK
           409:
             description: Data conflict
-            body: 
+            body:
               application/json:
                 type: domainError
           404:
             description: Task does not exist
-            body: 
+            body:
               application/json:
                 type: domainError
           400:
             description: Bad user input
-            body: 
+            body:
               application/json:
                 type: domainError
           500:
             description: Server error
-            body: 
+            body:
               application/json:
                 type: domainError
 
@@ -965,30 +965,30 @@ types:
       put:
         (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
         description: Complete the task
-        body: 
+        body:
           application/json:
             type: executionResult
-        responses: 
+        responses:
           204:
             description: OK
           409:
             description: Data conflict
-            body: 
+            body:
               application/json:
                 type: domainError
           404:
             description: Task does not exist
-            body: 
+            body:
               application/json:
                 type: domainError
           400:
             description: Bad user input
-            body: 
+            body:
               application/json:
                 type: domainError
           500:
             description: Server error
-            body: 
+            body:
               application/json:
                 type: domainError
 
@@ -997,29 +997,29 @@ types:
   post:
     (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
     description: Register a new activity
-    body: 
+    body:
       application/json:
         type: activityDefinition
-    queryParameters: 
+    queryParameters:
       noreply?:
         type: integer
         description: Indication that no body is required in successful reply
-    responses: 
+    responses:
       201:
         description: Activity is registered
-        body: 
+        body:
           application/json:
             type: activityShort
       204:
         description: Activity is registered and no reply body is required
       400:
         description: Bad user input
-        body: 
+        body:
           application/json:
             type: domainError
       500:
         description: Server error
-        body: 
+        body:
           application/json:
             type: domainError
 
@@ -1067,7 +1067,7 @@ types:
         description: Resource id filter, multiple entries are accepted
       resourceName?:
         type: string256
-        description: Resource name filter, multiple entries are accepted, 'like' is supported in the form 'like(value)' 
+        description: Resource name filter, multiple entries are accepted, 'like' is supported in the form 'like(value)'
       resouceType?:
         type: string64
         description: Resource type filter, multiple entries are accepted
@@ -1109,12 +1109,12 @@ types:
             description: activity collection
       400:
         description: Bad user input
-        body: 
+        body:
           application/json:
             type: domainError
       500:
         description: Server error
-        body: 
+        body:
           application/json:
             type: domainError
 
@@ -1122,27 +1122,27 @@ types:
     get:
       (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
       description: Get the single activity
-      queryParameters: 
+      queryParameters:
         lod?:
           type: levelOfDetail
-      responses: 
+      responses:
         200:
           body:
             application/json:
               type: activity
         404:
           description: Activity does not exist
-          body: 
+          body:
             application/json:
               type: domainError
         400:
           description: Bad user input
-          body: 
+          body:
             application/json:
               type: domainError
         500:
           description: Server error
-          body: 
+          body:
             application/json:
               type: domainError
 
@@ -1150,22 +1150,22 @@ types:
       put:
         (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
         description: Set activity started
-        responses: 
+        responses:
           204:
             description: OK
           404:
             description: Activity does not exist
-            body: 
+            body:
               application/json:
                 type: domainError
           409:
             description: Data conflict
-            body: 
+            body:
               application/json:
                 type: domainError
           500:
             description: Server error
-            body: 
+            body:
               application/json:
                 type: domainError
 
@@ -1173,41 +1173,10 @@ types:
       put:
         (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
         description: Set activity progress
-        queryParameters: 
+        queryParameters:
           value:
             type: integer
-        responses: 
-          204:
-            description: OK
-          409:
-            description: Data conflict
-            body: 
-              application/json:
-                type: domainError
-          404:
-            description: Activity does not exist
-            body: 
-              application/json:
-                type: domainError
-          400:
-            description: Bad user input
-            body: 
-              application/json:
-                type: domainError
-          500:
-            description: Server error
-            body: 
-              application/json:
-                type: domainError
-
-    /completed:
-      put:
-        (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
-        description: Complete the activity
-        body: 
-          application/json:
-            type: executionResult
-        responses: 
+        responses:
           204:
             description: OK
           409:
@@ -1217,17 +1186,48 @@ types:
                 type: domainError
           404:
             description: Activity does not exist
-            body: 
+            body:
               application/json:
                 type: domainError
           400:
             description: Bad user input
-            body: 
+            body:
               application/json:
                 type: domainError
           500:
             description: Server error
-            body: 
+            body:
+              application/json:
+                type: domainError
+
+    /completed:
+      put:
+        (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
+        description: Complete the activity
+        body:
+          application/json:
+            type: executionResult
+        responses:
+          204:
+            description: OK
+          409:
+            description: Data conflict
+            body:
+              application/json:
+                type: domainError
+          404:
+            description: Activity does not exist
+            body:
+              application/json:
+                type: domainError
+          400:
+            description: Bad user input
+            body:
+              application/json:
+                type: domainError
+          500:
+            description: Server error
+            body:
               application/json:
                 type: domainError
 
@@ -1236,13 +1236,13 @@ types:
   post:
     (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
     description: Register a new task consumer
-    body: 
+    body:
       application/json:
         type: taskConsumer
-    responses: 
+    responses:
       200:
         description: List of assigned tasks
-        body: 
+        body:
           application/json:
             type: collection
             description: Task collection
@@ -1250,12 +1250,12 @@ types:
         description: No tasks at the moment
       400:
         description: Bad user input
-        body: 
+        body:
           application/json:
             type: domainError
       500:
         description: Server error
-        body: 
+        body:
           application/json:
             type: domainError
 
@@ -1264,75 +1264,75 @@ types:
   post:
     (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
     description: Heartbeat the task
-    body: 
+    body:
       application/json:
         type: taskHeartbeat
-    responses: 
+    responses:
       200:
         description: OK
-        body: 
+        body:
           application/json:
             type: taskControl
       404:
         description: Task not found, execution must be aborted
-        body: 
+        body:
           application/json:
             type: domainError
       409:
         description: Data conflict, execution must be aborted
-        body: 
+        body:
           application/json:
             type: domainError
       400:
         description: Bad user input
-        body: 
+        body:
           application/json:
             type: domainError
       500:
         description: Server error
-        body: 
+        body:
           application/json:
-            type: domainError  
+            type: domainError
 
 /blockers:
   is: [ScopedByContextTenant]
   post:
     (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
     description: Register a task execution blocker
-    body: 
+    body:
       application/json:
         type: blockerDefinition
-    responses: 
+    responses:
       201:
         description: Blocker is registered
-        body: 
+        body:
           application/json:
             type: blocker
       404:
         description: Task not found
-        body: 
+        body:
           application/json:
             type: domainError
       409:
         description: Data conflict
-        body: 
+        body:
           application/json:
             type: domainError
       400:
         description: Bad user input
-        body: 
+        body:
           application/json:
             type: domainError
       500:
         description: Server error
-        body: 
+        body:
           application/json:
             type: domainError
 
   get:
     (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
     description: Get a list of blockers
-    queryParameters: 
+    queryParameters:
       limit?:
         type: integer
         description: Page size
@@ -1353,12 +1353,12 @@ types:
             description: blocker collection
       400:
         description: Bad user input
-        body: 
+        body:
           application/json:
             type: domainError
       500:
         description: Server error
-        body: 
+        body:
           application/json:
             type: domainError
 
@@ -1366,22 +1366,22 @@ types:
     delete:
       (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
       description: Unregister the blocker
-      responses: 
+      responses:
         204:
           description: OK
         404:
           description: Task not found
-          body: 
+          body:
             application/json:
               type: domainError
         409:
           description: Data conflict
-          body: 
+          body:
             application/json:
               type: domainError
         500:
           description: Server error
-          body: 
+          body:
             application/json:
               type: domainError
 
@@ -1389,53 +1389,53 @@ types:
       put:
         (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
         description: Provide the blocker solution
-        body: 
+        body:
           type: blob
-        responses: 
+        responses:
           204:
             description: OK
           404:
             description: Blocker not found
-            body: 
+            body:
               application/json:
                 type: domainError
           409:
             description: Data conflict
-            body: 
+            body:
               application/json:
                 type: domainError
           500:
             description: Server error
-            body: 
+            body:
               application/json:
                 type: domainError
-          
+
 /events:
   is: [ScopedByContextTenant]
   post:
     (AllowedTo): ["task_manager::admin", "task_manager::consumer"]
     description: Register an event
-    body: 
+    body:
       application/json:
         type: eventDefinition
-    responses: 
+    responses:
       204:
         description: Event is registered
       400:
         description: Bad user input
-        body: 
+        body:
           application/json:
             type: domainError
       500:
         description: Server error
-        body: 
+        body:
           application/json:
             type: domainError
 
   get:
     (AllowedTo): ["task_manager::admin", "task_manager::viewer"]
     description: Get a list of events
-    queryParameters: 
+    queryParameters:
       limit?:
         type: integer
         description: Page size
@@ -1456,12 +1456,12 @@ types:
             description: event collection
       400:
         description: Bad user input
-        body: 
+        body:
           application/json:
             type: domainError
       500:
         description: Server error
-        body: 
+        body:
           application/json:
             type: domainError
 

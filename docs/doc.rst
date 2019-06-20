@@ -26,7 +26,7 @@ fuzzer:
       """Authorize on server* and return session.
          Return:
             session(Session) - object of current session"""
-   def 
+   def
 
 ~~~~~~~~~~~~~~~~~~
 py_parser:
