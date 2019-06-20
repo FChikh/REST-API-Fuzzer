@@ -1,5 +1,5 @@
 var path = require("path");
-var raml1Parser = require('../js-parser/dist/index');
+var raml1Parser = require('../../js-parser/dist/index');
 var fs = require("fs")
 
 

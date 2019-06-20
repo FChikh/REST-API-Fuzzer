@@ -5,7 +5,7 @@ import wfuzz
 import random
 import json
 import sys
-from consts import types, domain, req_types
+from modules.consts import types, domain, req_types
 
 
 def convert_cookies_format(cookies):
@@ -40,37 +40,37 @@ def authorize():
 
 
 def parse_params(params, fuzz=''):
-    result = ''
+    result = []
     for item in params:
         if item != fuzz and item['required']:
             if item['type'] == 'array':
                 for _ in range(random.randint(1, 20)):
                     if type(types[item['items']]) == dict:
                         for key, value in convert_types(types[item['items']]).items():
-                            result += key + '=' + rstr.xeger(value) + '&'
+                            result.append(key + '=' + rstr.xeger(value))
                     else:
-                        result += item['name'] + '=' + rstr.xeger(types[item['items']]) + '&'
+                        result.append(item['name'] + '=' + rstr.xeger(types[item['items']]))
                 continue
             
             if item['type'] == 'object':
                 for key, value in item['properties'].items():
                     if type(types[value]) == dict:
                         for key1, value1 in convert_types(types[value]).items():
-                            result += key1 + '=' + rstr.xeger(value1) + '&'
+                            result.append(key1 + '=' + rstr.xeger(value1))
                     else:
-                        result += key + '=' + rstr.xeger(types[value]) + '&'
+                        result.append(key + '=' + rstr.xeger(types[value]))
                 continue
 
             if type(types[item['type']]) == dict:
                 for key, value in convert_types(types[item['type']]).items():
-                    result += key + '=' + rstr.xeger(value) + '&'
+                    result.append(key + '=' + rstr.xeger(value))
             else:
-                result += item['name'] + '=' + rstr.xeger(types[item['type']]) + '&'
+                result.append(item['name'] + '=' + rstr.xeger(types[item['type']]))
                 
-    return result
+    return '&'.join(result)
 
 
-def fuzz_first_step(page):
+def fuzz_first_step(page, hc, sc):
     session = authorize()
     url = domain
 
@@ -90,14 +90,14 @@ def fuzz_first_step(page):
                                   payloads=[("file", dict(fn="big.txt"))])
 
     print(url)
-    for r in fuzz_sess.fuzz(sc=[405]):
+    for r in fuzz_sess.fuzz(hc=hc, sc=sc):
         print(r)
     
     for i in page['pages']:
         fuzz_first_step(i)
 
 
-def fuzz_second_step(page):
+def fuzz_second_step(page, hc, sc):
     session = authorize()
 
     for method in page['methods']:
@@ -112,7 +112,7 @@ def fuzz_second_step(page):
                                               method='GET').get_payload(req_types)
 
                 print(url)
-                for r in fuzz_sess.fuzz(sc=[405]):
+                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
                     print(r)
 
         elif method['method'] == 'get' and page['is_changeable']:
@@ -126,7 +126,7 @@ def fuzz_second_step(page):
                                               method='GET').get_payload(req_types)
                 
                 print(url)
-                for r in fuzz_sess.fuzz(sc=[405]):
+                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
                     print(r)
                     
             uri = urllib.parse.quote(parse_params(params), safe='=&~._')
@@ -137,7 +137,7 @@ def fuzz_second_step(page):
                                           method='GET').get_payload(req_types)
 
             print(url)
-            for r in fuzz_sess.fuzz(sc=[405]):
+            for r in fuzz_sess.fuzz(hc=hc, sc=sc):
                 print(r)
                 
         elif method['method'] == 'post' and not page['is_changeable']:
@@ -153,7 +153,7 @@ def fuzz_second_step(page):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(sc=[405]):
+                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
                     print(r)
                     
             for item in params_body:
@@ -166,7 +166,7 @@ def fuzz_second_step(page):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(sc=[405]):
+                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
                     print(r)
                     
         elif method['method'] == 'post' and page['is_changeable']:
@@ -183,7 +183,7 @@ def fuzz_second_step(page):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(sc=[405]):
+                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
                     print(r)
                     
             for item in params_query:
@@ -197,7 +197,7 @@ def fuzz_second_step(page):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(sc=[405]):
+                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
                     print(r)
 
             uri = urllib.parse.quote(parse_params(params_query), safe='=&~.')
@@ -210,7 +210,7 @@ def fuzz_second_step(page):
                                           method='POST').get_payload(req_types)
             
             print(url, postdata)
-            for r in fuzz_sess.fuzz(sc=[405]):
+            for r in fuzz_sess.fuzz(hc=hc, sc=sc):
                 print(r)
                 
         elif method['method'] == 'put' and not page['is_changeable']:
@@ -229,7 +229,7 @@ def fuzz_second_step(page):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(sc=[405]):
+                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
                     print(r)
 
             for item in params_body:
@@ -242,7 +242,7 @@ def fuzz_second_step(page):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(sc=[405]):
+                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
                     print(r)
                     
         elif method['method'] == 'put' and page['is_changeable']:
@@ -263,7 +263,7 @@ def fuzz_second_step(page):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(sc=[405]):
+                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
                     print(r)
                     
             for item in params_query:
@@ -277,7 +277,7 @@ def fuzz_second_step(page):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(sc=[405]):
+                for r in fuzz_sess.fuzz(hc=hc, sc=sc):
                     print(r)
 
             uri = urllib.parse.quote(parse_params(params_query), safe='=&~.')
@@ -290,7 +290,7 @@ def fuzz_second_step(page):
                                           method='PUT').get_payload(req_types)
             
             print(url, postdata)
-            for r in fuzz_sess.fuzz(sc=[405]):
+            for r in fuzz_sess.fuzz(hc=hc, sc=sc):
                 print(r)
                 
         elif method['method'] == 'delete':
@@ -300,14 +300,14 @@ def fuzz_second_step(page):
                                           method='DELETE').get_payload(req_types)
             
             print(url)
-            for r in fuzz_sess.fuzz(sc=[405]):
+            for r in fuzz_sess.fuzz(hc=hc, sc=sc):
                 print(r)
         
         for item in page['pages']:
             fuzz_second_step(item)
 
 
-def fuzz(data):
-    fuzz_first_step(data)
+def fuzz(data, hc, sc):
+    fuzz_first_step(data, hc, sc)
     for page in data['pages']:
-        fuzz_second_step(page)
+        fuzz_second_step(page, hc, sc)

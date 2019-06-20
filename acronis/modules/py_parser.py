@@ -107,8 +107,8 @@ def parse(parsed_page, page, data):
 
 
 def fetch_parsed_data(path):
-    os.system('node parser.js ' + path)
-    with open('parsed.json', 'r') as json_file:
+    os.system('node modules/parser.js ' + path)
+    with open('modules/parsed.json', 'r') as json_file:
         data = json.load(json_file)
 
     parsed_data = {}
