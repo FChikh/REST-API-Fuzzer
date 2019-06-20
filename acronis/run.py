@@ -11,35 +11,39 @@ console_stdout = sys.stdout
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 print('Starting...')
+data = {}
 while True:
-    path = input('Full path to main RAML doc')
+    path = input('Full path to main RAML doc\n')
     try:
         print('Parsing RAML...')
         data = fetch_parsed_data(path)
     except:
         print('Wrong path!')
+        break
     else:
         print('Finished')
         break
 hc = []
 sc = []
 while True:
-    ans = input('Want to specify ignoring errors? (y/n)')
+    ans = input('Want to specify errors, that shouldn\'t be shown? (y/n)\n')
     if ans in ['y', 'Y']:
         try:
-            hc = list(map(int, input('Specify them, splitting with spaces').split()))
-        except TypeError:
+            hc = list(map(int, input('Specify them, splitting with spaces\n').split()))
+        except ValueError:
             print('Wrong format')
+        else:
+            break
     elif ans in ['n', 'N']:
         break
     else:
         pass
 while True:
-    ans = input('Want to specify errors, that should be shown? (y/n)')
+    ans = input('Want to specify errors, that should be shown? (y/n)\n')
     if ans in ['y', 'Y']:
         try:
-            sc = list(map(int, input('Specify them, splitting with spaces').split()))
-        except TypeError:
+            sc = list(map(int, input('Specify them, splitting with spaces\n').split()))
+        except ValueError:
             print('Wrong format')
         else:
             break
