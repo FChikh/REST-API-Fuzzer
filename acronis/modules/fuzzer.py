@@ -5,7 +5,7 @@ import wfuzz
 import random
 import json
 import sys
-from consts import types, domain, req_types
+from modules.consts import types, domain, req_types
 
 
 def convert_cookies_format(cookies):
