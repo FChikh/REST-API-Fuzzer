@@ -25,7 +25,7 @@ def convert_types(type_dict):
     return formatted_dict
 
 
-def authorization():
+def authorize():
     session = requests.Session()
     headers = {'Content-type': 'application/json',
                'Accept': 'text/plain',
@@ -71,7 +71,7 @@ def parse_params(params, fuzz=''):
 
 
 def fuzzing_component1(page):
-    session = authorization()
+    session = authorize()
     url = domain
 
     if not page['is_changeable']:
@@ -90,7 +90,7 @@ def fuzzing_component1(page):
                                   payloads=[("file", dict(fn="big.txt"))])
 
     print(url)
-    for r in fuzz_sess.fuzz(hc=[404]):
+    for r in fuzz_sess.fuzz(hc=[400, 404]):
         print(r)
     
     for i in page['pages']:
@@ -98,14 +98,7 @@ def fuzzing_component1(page):
 
 
 def fuzzing_component2(page):
-    session = authorization()
-
-    ignored_codes = []
-    try:
-        for response in page['responses']:
-            ignored_codes.append(response.code)
-    except KeyError:
-        pass
+    session = authorize()
     
     for method in page['methods']:
         print(method['method'])
@@ -117,9 +110,9 @@ def fuzzing_component2(page):
                 fuzz_sess = wfuzz.FuzzSession(url=url,
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               method='GET').get_payload(req_types)
-                
+
                 print(url)
-                for r in fuzz_sess.fuzz(hc=ignored_codes):
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
 
         elif method['method'] == 'get' and page['is_changeable']:
@@ -133,7 +126,7 @@ def fuzzing_component2(page):
                                               method='GET').get_payload(req_types)
                 
                 print(url)
-                for r in fuzz_sess.fuzz(hc=ignored_codes):
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
                     
             uri = urllib.parse.quote(parse_params(params), safe='=&~._')
@@ -144,7 +137,7 @@ def fuzzing_component2(page):
                                           method='GET').get_payload(req_types)
 
             print(url)
-            for r in fuzz_sess.fuzz(hc=ignored_codes):
+            for r in fuzz_sess.fuzz(hc=[400, 404]):
                 print(r)
                 
         elif method['method'] == 'post' and not page['is_changeable']:
@@ -160,7 +153,7 @@ def fuzzing_component2(page):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=ignored_codes):
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
                     
             for i in params_body:
@@ -173,7 +166,7 @@ def fuzzing_component2(page):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=ignored_codes):
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
                     
         elif method['method'] == 'post' and page['is_changeable']:
@@ -190,7 +183,7 @@ def fuzzing_component2(page):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=ignored_codes):
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
                     
             for i in params_query:
@@ -204,7 +197,7 @@ def fuzzing_component2(page):
                                               method='POST').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=ignored_codes):
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
 
             uri = urllib.parse.quote(parse_params(params_query), safe='=&~.')
@@ -217,7 +210,7 @@ def fuzzing_component2(page):
                                           method='POST').get_payload(req_types)
             
             print(url, postdata)
-            for r in fuzz_sess.fuzz(hc=ignored_codes):
+            for r in fuzz_sess.fuzz(hc=[400, 404]):
                 print(r)
                 
         elif method['method'] == 'put' and not page['is_changeable']:
@@ -236,7 +229,7 @@ def fuzzing_component2(page):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=ignored_codes):
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
                     
             for i in params_body:
@@ -249,7 +242,7 @@ def fuzzing_component2(page):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=ignored_codes):
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
                     
         elif method['method'] == 'put' and page['is_changeable']:
@@ -270,7 +263,7 @@ def fuzzing_component2(page):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=ignored_codes):
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
                     
             for i in params_query:
@@ -284,7 +277,7 @@ def fuzzing_component2(page):
                                               method='PUT').get_payload(req_types)
                 
                 print(url, postdata)
-                for r in fuzz_sess.fuzz(hc=ignored_codes):
+                for r in fuzz_sess.fuzz(hc=[400, 404]):
                     print(r)
 
             uri = urllib.parse.quote(parse_params(params_query), safe='=&~.')
@@ -297,7 +290,7 @@ def fuzzing_component2(page):
                                           method='PUT').get_payload(req_types)
             
             print(url, postdata)
-            for r in fuzz_sess.fuzz(hc=ignored_codes):
+            for r in fuzz_sess.fuzz(hc=[400, 404]):
                 print(r)
                 
         elif method['method'] == 'delete':
@@ -307,7 +300,7 @@ def fuzzing_component2(page):
                                           method='DELETE').get_payload(req_types)
             
             print(url)
-            for r in fuzz_sess.fuzz(hc=ignored_codes):
+            for r in fuzz_sess.fuzz(hc=[400, 404]):
                 print(r)
         
         for i in page['pages']:

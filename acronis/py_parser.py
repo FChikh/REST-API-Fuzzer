@@ -2,7 +2,7 @@ import json
 import os
 
 
-def parsing(parsed_page, page, data):
+def parse(parsed_page, page, data):
     try:
         parsed_page['baseUri'] = page['baseUri']
         parsed_page['is_changeable'] = False
@@ -101,7 +101,7 @@ def parsing(parsed_page, page, data):
         for resource in page['resources']:
             parsed_page['pages'].append({'type': parsed_page['type'],
                                          'is_changeable': parsed_page['is_changeable']});
-            parsing(parsed_page['pages'][-1], resource, data)
+            parse(parsed_page['pages'][-1], resource, data)
     except KeyError:
         pass
 
@@ -112,5 +112,5 @@ def fetch_parsed_data():
         data = json.load(json_file)
 
     parsed_data = {}
-    parsing(parsed_data, data, data)
+    parse(parsed_data, data, data)
     return parsed_data
