@@ -3,11 +3,12 @@ This module is a launcher of our fuzzer
 To run fuzzer, use 'python3 run.py' command
 """
 
-import sys
-import time
-import urllib3
 from modules.py_parser import fetch_parsed_data
 from modules.fuzzer import fuzz
+from modules.consts import set_domain
+import urllib3
+import sys
+import time
 
 
 def main():
@@ -28,13 +29,19 @@ def main():
         path = input('Full path to main RAML doc\n')
         try:
             print('Parsing RAML...')
-            data = fetch_parsed_data(path)
-        except:
-            print('Wrong path!')
-            break
+            data, sensor = fetch_parsed_data(path)
+            out = sensor.stdout.read(1)
+            if int(out):
+                pass
+            else:
+                print('Wrong path!')
+                raise ValueError
+        except ValueError:
+            pass
         else:
             print('Finished')
             break
+    set_domain(input('Full domain name with protocol\n'))
     specification = ''
     specification_codes = []
     ans = input('Want to specify errors? (y/n)\n')

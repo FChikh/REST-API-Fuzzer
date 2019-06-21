@@ -5,6 +5,7 @@ It converts from RAML specs to JSON format
 
 import json
 import os
+from subprocess import PIPE, Popen
 
 
 def parse(parsed_page, page, data):
@@ -112,10 +113,10 @@ def parse(parsed_page, page, data):
 
 
 def fetch_parsed_data(path):
-    os.system('node modules/parser.js ' + path)
+    sensor = Popen(['node', 'modules/parser.js', path], stdout=PIPE)
     with open('modules/parsed.json', 'r') as json_file:
         data = json.load(json_file)
 
     parsed_data = {}
     parse(parsed_data, data, data)
-    return parsed_data
+    return parsed_data, sensor
