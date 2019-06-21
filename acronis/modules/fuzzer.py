@@ -18,7 +18,7 @@ def convert_cookies_format(cookies):
     
     :param cookies: dict of cookies files
     :type: dict
-    :return: list of cookies files
+    :return: list of cookies files, formatted like this: ['name1=value1', 'name2=value2',...]
     :type: list
     """
     new_cookies = []
@@ -31,7 +31,7 @@ def convert_types(type_dict):
     """
     Transform dict which contains another dicts into one dict
     
-    :param type_dict: dict, which conatains another dicts
+    :param type_dict: dict, which contains another dicts
     :type: dict
     :return: dict without dicts in it
     :type: dict
