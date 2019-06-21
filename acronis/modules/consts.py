@@ -1,7 +1,7 @@
 import random
 import rstr
 
-domain = 'https://mc-w5vz-1306.msp.ru.corp.acronis.com'
+domain = ''
 
 req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
              random.randint(10 ** 50, 10 ** 100),
@@ -114,7 +114,6 @@ types = {
                                       r'0-5]\d):([0-5]\d|60)(\.\d+)?(([Zz])|('
                                       r'[\+|\-]([01]\d|2[0-3])))$'},
 
-    'levelOfDetail': r'(short|long|full|debug|count)',
     'timeFilter': r'^(\d+)-(0[1-9]|1[012])-(0[1-9]|[12]\d|3[01])[Tt](['
                   r'01]\d|2[0-3]):([0-5]\d):([0-5]\d|60)(\.\d+)?(([Zz])|(['
                   r'\+|\-]([01]\d|2[0-3])))$',
@@ -124,3 +123,10 @@ types = {
                      'qos': r'^(-)?\d+$'},
     'taskHeartbeat': {'taskId': r'^(-)?\d+$'}
 }
+
+
+def set_domain(user_domain):
+    global domain
+    print(domain, user_domain)
+    domain = user_domain
+    return domain
