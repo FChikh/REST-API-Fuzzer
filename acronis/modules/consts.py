@@ -1,7 +1,17 @@
+"""
+This module contains params, that are used in our fuzzer
+"""
+
 import random
 import rstr
 
 domain = ''
+domain = 'https://mc-w5vz-1306.msp.ru.corp.acronis.com'
+"""
+:type: str
+
+Domain of service that fuzzer tests
+"""
 
 req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
              random.randint(10 ** 50, 10 ** 100),
@@ -13,6 +23,13 @@ req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
              rstr.letters(257, 2000), rstr.nonwhitespace(257, 2000),
              int(bool(random.getrandbits(1))),
              'абвгдеёжзийклмнопрстуфхцчшщъыьэюя']
+"""
+:type: list
+
+Contains parameters of different types(str, int, long int),
+that our fuzzer places as a QueryParameter or UriParameter in request methods 
+from RAML specification to identify incorrect error codes
+"""
 
 types = {
     'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-['
@@ -123,6 +140,12 @@ types = {
                      'qos': r'^(-)?\d+$'},
     'taskHeartbeat': {'taskId': r'^(-)?\d+$'}
 }
+"""
+:type: dict
+
+Contains regular expressions for types from RAML specification
+Are used by rstr library to generate correct param of choden type
+"""
 
 
 def set_domain(user_domain):

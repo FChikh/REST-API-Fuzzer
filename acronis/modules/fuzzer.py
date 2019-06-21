@@ -1,3 +1,7 @@
+"""
+This module is a fuzzer itself
+"""
+
 import urllib
 import requests
 import rstr
@@ -9,6 +13,14 @@ from modules.consts import types, domain, req_types
 
 
 def convert_cookies_format(cookies):
+    """
+    Convert dict of cookies files to list format
+    
+    :param cookies: dict of cookies files
+    :type: dict
+    :return: list of cookies files
+    :type: list
+    """
     new_cookies = []
     for key, value in cookies.items():
         new_cookies.append('{}={}'.format(key, value))
@@ -16,6 +28,14 @@ def convert_cookies_format(cookies):
 
 
 def convert_types(type_dict):
+    """
+    Transform dict which contains another dicts into one dict
+    
+    :param type_dict: dict, which conatains another dicts
+    :type: dict
+    :return: dict without dicts in it
+    :type: dict
+    """
     formatted_dict = {}
     for key, value in type_dict.items():
         if type(value) == dict:
@@ -26,6 +46,11 @@ def convert_types(type_dict):
 
 
 def authorize():
+    """
+    Make fuzzer authorized to service, so it can test it
+    
+    :return: None
+    """
     session = requests.Session()
     headers = {'Content-type': 'application/json',
                'Accept': 'text/plain',
@@ -40,6 +65,15 @@ def authorize():
 
 
 def parse_params(params, fuzz=''):
+    """
+    Convert params from structures to fuzzable string
+    :param params: list of params of one type (body, query)
+    :type: list
+    :param fuzz: name of FUZZ parameter
+    :type: string
+    :return: string formatted for fuzzing: 'param1=value1&param2=value2...'
+    :rtype: string
+    """
     result = []
     for item in params:
         if item != fuzz and item['required']:
@@ -283,6 +317,19 @@ def fuzz_second_step(page, specification, specification_codes):
 
 
 def fuzz(data, specification, specification_codes):
+    """
+    Launch two components of fuzzer
+    
+    :param data: RAML specification in dict format
+    :type: dict
+    :param specification: 'sc' or 'hc' str. 
+    'hc' - specification codes should be ignored
+    'sc' - only specification codes should be displayed
+    :type: str
+    :param specification_codes: list of codes, that should be ignored or displayed (depends on specification)
+    :type: list
+    :return: None
+    """
     fuzz_first_step(data, specification, specification_codes)
     for page in data['pages']:
         fuzz_second_step(page, specification, specification_codes)
