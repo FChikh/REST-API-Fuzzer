@@ -18,7 +18,7 @@ def convert_cookies_format(cookies):
     
     :param cookies: dict of cookies files
     :type: dict
-    :return: list of cookies files
+    :return: list of cookies files, formatted like this: ['name1=value1', 'name2=value2',...]
     :type: list
     """
     new_cookies = []
