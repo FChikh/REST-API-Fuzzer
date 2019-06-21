@@ -6,6 +6,11 @@ import random
 import rstr
 
 domain = 'https://mc-w5vz-1306.msp.ru.corp.acronis.com'
+"""
+:type: str
+
+BaseUri of service that fuzzer tests
+"""
 
 req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
              random.randint(10 ** 50, 10 ** 100),
@@ -20,7 +25,7 @@ req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
 """
 :type: list
 
-Contains parameters of different types(str, int, long int), 
+Contains parameters of different types(str, int, long int),
 that our fuzzer places as a QueryParameter or UriParameter in request methods 
 from RAML specification to identify incorrect error codes
 """
