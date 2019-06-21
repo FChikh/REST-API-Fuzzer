@@ -3,7 +3,7 @@
 This is the prototype of intelligent fuzzer for services, written with REST API rules, which was created during the Summer school internship in Acronis. Authors: Fedor Chikhachev, Egor Degterenko, Konstantin Korkin, Lubov Sadovskaya (Moscow State Public School №444 students)
 
 ## How it works:
-* It analyzes RAML specification for your API
+* It analyzes RAML specification for your REST API
 * It has 2 fuzzing sessions. Firstly, random routing. Simply going to popular routes. Secondly, GET & POST params fuzzing, 
 based on what it found in your RAML specification. 
 
