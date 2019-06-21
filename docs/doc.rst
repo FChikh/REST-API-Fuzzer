@@ -19,6 +19,7 @@ fuzzer:
                 * cookies(dict) - dictionary contained cookies from session
             * Return:
                 * new_cookies(arr) - variable new_cookies"""
+
     def convert_types(type_dict):
         """ * Check dictionary on nested dictionaries, convert it into one
               dictionary without nested dictionaries
@@ -30,6 +31,7 @@ fuzzer:
                   dictionaries
             * Return:
                 * formatted_dict(dict) - variable formatted_dict"""
+
     def authorize(domain):
         """ * Authorize on server, return session, now work only for Acronis
             * Variables:
@@ -39,6 +41,7 @@ fuzzer:
                 * domain(str) - string contained domain name of server
             * Return:
                 * session(Session) - variable session"""
+
     def parse_params(params, fuzz=''):
         """ * Parse queryParameters for lower level of parameters, return
               result
@@ -66,6 +69,7 @@ fuzzer:
                 * url(str) - string contained current url
                 * cur_method(str) - string contained current method
                 * postdata(str) - string contained data of post method"""
+
     def fuzz_first_step(page, specification, specification_codes, domain):
         """ * Fuzz uri, look for undeclared pages, use authorize() to set
               session, use print_fuzz_data() to print data about fuzzing,

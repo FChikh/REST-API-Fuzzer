@@ -105,6 +105,17 @@ def parse_params(params, fuzz=''):
 
 
 def print_fuzz_data(page, specification, specification_codes, fuzz_sess, url, cur_method='get', postdata=''):
+    """
+    Launch fuzzing, print results, url, postdata
+    :param page: dictionary that contain data about page
+    :param specification: string that can be '', 'hc', 'sc', used to specify wfuzz
+    :param specification_codes: array of integers contained status codes, used to specify specification of wfuzz
+    :param fuzz_sess: fuzzing session object contained data about current fuzzing session
+    :param url: string contained current url
+    :param cur_method: string contained current method
+    :param postdata: string contained data of post method
+    :return: none
+    """
     print(url, postdata)
     if not specification_codes and specification:
         for method in page['methods']:
@@ -125,6 +136,14 @@ def print_fuzz_data(page, specification, specification_codes, fuzz_sess, url, cu
 
 
 def fuzz_first_step(page, specification, specification_codes):
+    """
+    Fuzz uri, look for undeclared pages, use authorize() to set session, use print_fuzz_data() to print data about
+    fuzzing, use recursion to fuzz all pages
+    :param page: dictionary that contain data about page
+    :param specification:
+    :param specification_codes:
+    :return:
+    """
     session = authorize()
     url = domain
 
