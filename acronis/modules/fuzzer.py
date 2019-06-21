@@ -31,7 +31,7 @@ def convert_types(type_dict):
     """
     Transform dict which contains another dicts into one dict
     
-    :param type_dict: dict, which conatains another dicts
+    :param type_dict: dict, which contains another dicts
     :type: dict
     :return: dict without dicts in it
     :type: dict
