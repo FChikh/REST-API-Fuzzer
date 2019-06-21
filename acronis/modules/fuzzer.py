@@ -149,6 +149,19 @@ def fuzz_first_step(page, specification, specification_codes):
 
 
 def fuzz_second_step(page, specification, specification_codes):
+    """
+    Second stage of fuzzing: analysis and fuzzing of params
+    :param page: dict with info about page from RAML: allowed methods, possible
+    responses, body, query params etc.
+    :type: dict
+    :param specification: 'sc' or 'hc' str.
+    'hc' - specification codes should be ignored
+    'sc' - only specification codes should be displayed
+    :type: str
+    :param specification_codes: list of codes, that should be ignored or displayed (depends on specification)
+    :type: list
+    :return: None
+    """
     session = authorize()
 
     for method in page['methods']:
