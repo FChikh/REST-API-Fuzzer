@@ -1,3 +1,8 @@
+"""
+This module is a parser of our fuzzer
+It converts from RAML specs to JSON format
+"""
+
 import json
 import os
 
