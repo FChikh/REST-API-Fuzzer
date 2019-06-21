@@ -40,6 +40,15 @@ def authorize():
 
 
 def parse_params(params, fuzz=''):
+    """
+    Convert params from structures to fuzzable string
+    :param params: list of params of one type (body, query)
+    :type: list
+    :param fuzz: name of FUZZ parameter
+    :type: string
+    :return: string formatted for fuzzing: 'param1=value1&param2=value2...'
+    :rtype: string
+    """
     result = []
     for item in params:
         if item != fuzz and item['required']:
