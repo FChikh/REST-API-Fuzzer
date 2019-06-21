@@ -5,8 +5,7 @@ This module contains params, that are used in our fuzzer
 import random
 import rstr
 
-domain = ''
-domain = 'https://mc-w5vz-1306.msp.ru.corp.acronis.com'
+
 """
 :type: str
 
@@ -146,10 +145,3 @@ types = {
 Contains regular expressions for types from RAML specification
 Are used by rstr library to generate correct param of choden type
 """
-
-
-def set_domain(user_domain):
-    global domain
-    print(domain, user_domain)
-    domain = user_domain
-    return domain

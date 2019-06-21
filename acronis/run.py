@@ -5,7 +5,6 @@ To run fuzzer, use 'python3 run.py' command
 
 from modules.py_parser import fetch_parsed_data
 from modules.fuzzer import fuzz
-from modules.consts import set_domain
 import urllib3
 import sys
 import time
@@ -13,9 +12,9 @@ import time
 
 def main():
     """
-    Main function; providing user input from CLI.
-    User can specify path to RAML specs, ignored errors.
-    :return: None
+    Make console input/output, open/make file log.txt, specify fuzzer for user, call fetch_parsed_data() to fetch parsed
+    data and fuzz() to fuzz
+    :return: none
     """
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     start_time = time.time()
@@ -41,7 +40,7 @@ def main():
         else:
             print('Finished')
             break
-    set_domain(input('Full domain name with protocol\n'))
+    domain = input('Full domain name with protocol\n')
     specification = ''
     specification_codes = []
     ans = input('Want to specify errors? (y/n)\n')
@@ -74,7 +73,7 @@ def main():
 
     print('Fuzzing...')
     sys.stdout = file
-    fuzz(data, specification, specification_codes)
+    fuzz(data, specification, specification_codes, domain)
     sys.stdout = console_stdout
     print('Done! Check out log.txt file')
     print("--- %s seconds ---" % (time.time() - start_time))

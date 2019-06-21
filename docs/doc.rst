@@ -12,13 +12,13 @@ fuzzer:
 .. code-block:: python
 
     def convert_cookies_format(cookies):
-        """ * Convert cookies from dictionary format to array
+        """ * Convert cookies from dictionary format to list
             * Variables:
-                * new_cookies(arr) - array of strings of format 'key=value'
+                * new_cookies(list) - list of strings of format 'key=value'
             * Argument:
                 * cookies(dict) - dictionary contained cookies from session
             * Return:
-                * new_cookies(arr) - variable new_cookies"""
+                * new_cookies(list) - variable new_cookies"""
 
     def convert_types(type_dict):
         """ * Check dictionary on nested dictionaries, convert it into one
@@ -33,7 +33,7 @@ fuzzer:
                 * formatted_dict(dict) - variable formatted_dict"""
 
     def authorize(domain):
-        """ * Authorize on server, return session, now work only for Acronis
+        """ * Authorize on server, return session
             * Variables:
                 * session(obj) - session object contained current session
                 * headers(dict) - dictionary contained data for login
@@ -49,9 +49,8 @@ fuzzer:
                 * result(str) - string contained data about queryParameters,
                   use following format: 'key=value&...'
             * Arguments:
-                * params(arr) - array of queryParameters
-                * fuzz(dict/str) - dictionary or string contained
-                  queryParameter or empty string
+                * params(list) - list of parameters
+                * fuzz(str) - string contained parameter name
             * Return:
                 * result(str) - variable result"""
 
@@ -62,7 +61,7 @@ fuzzer:
                 * page(dict) - dictionary that contain data about page
                 * specification(str) - string that can be '', 'hc', 'sc', used
                   to specify wfuzz
-                * specification_codes(arr) - array of integers contained
+                * specification_codes(list) - list of integers contained
                   status codes, used to specify specification of wfuzz
                 * fuzz_sess(obj) - fuzzing session object contained data about
                   current fuzzing session
@@ -80,12 +79,13 @@ fuzzer:
                 * fuzz_sess(obj) - fuzzing session object contained current
                   fuzzing session
             * Arguments:
-                * domain(str) - string contained domain name of server
                 * page(dict) - dictionary that contain data about page
-                * specification(str) - string that can be '', 'hc', 'sc', used
-                  to specify wfuzz
-                * specification_codes(arr) - array of integers contained
-                  status codes, used to specify specification of wfuzz"""
+                 * specification(str) - string that can be '', 'hc', 'sc', used
+                  in print_fuzz_data() to specify wfuzz
+                * specification_codes(list) - list of integers contained
+                  status codes, used in print_fuzz_data to specify specification
+                  of wfuzz
+                * domain(str) - string contained domain name of server"""
 
     def fuzz_second_step(page, specification, specification_codes, domain):
         """ * Fuzz parameters, look for undeclared status codes, use
@@ -97,25 +97,26 @@ fuzzer:
                 * fuzz_sess(obj) - fuzzing session object contained current
                   fuzzing session
             * Arguments:
-                * domain(str) - string contained domain name of server
                 * page(dict) - dictionary that contain data about page
                 * specification(str) - string that can be '', 'hc', 'sc', used
-                  to specify wfuzz
-                * specification_codes(arr) - array of integers contained
-                  status codes, used to specify specification of wfuzz"""
+                  in print_fuzz_data() to specify wfuzz
+                * specification_codes(list) - list of integers contained
+                  status codes, used in print_fuzz_data to specify specification
+                  of wfuzz
+                * domain(str) - string contained domain name of server"""
 
-    def fuzz(domain):
+    def fuzz(data, specification, specification_codes, domain):
         """ * Run fuzz_first_step() and fuzz_second_step() to fuzz server
             * Variables:
                 * None
             * Arguments:
                 * data(dict) - dictionary that contain data about server
-                * domain(str) - string contained domain name of server
                 * specification(str) - string that can be '', 'hc', 'sc', used
                   in fuzz_first_step() and fuzz_second_step() to specify wfuzz
-                * specification_codes(arr) - array of integers contained
+                * specification_codes(list) - list of integers contained
                   status codes, used in fuzz_first_step() and fuzz_second_step()
-                  to specify specification of wfuzz"""
+                  to specify specification of wfuzz
+                * domain(str) - string contained domain name of server"""
 
 ~~~~~~~~~~~~~~~~~~
 py_parser:
@@ -153,7 +154,7 @@ consts:
 .. code-block:: python
 
     req_types = []
-        """ * req_types(arr) - const array contained data for fuzzing"""
+        """ * req_types(list) - const list contained data for fuzzing"""
     types = {}
         """ * types(dict) - const dictionary contained regexes for fuzzing"""
 
@@ -179,5 +180,5 @@ run:
                   program working time
                 * specification(str) - string that can be '', 'hc', 'sc', used
                   in fuzz, used to specify wfuzz
-                * specification_codes(arr) - array of integers contained
+                * specification_codes(list) - list of integers contained
                   status codes, used in fuzz, can be changed in fuzz"""

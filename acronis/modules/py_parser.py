@@ -9,6 +9,17 @@ from subprocess import PIPE, Popen
 
 
 def parse(parsed_page, page, data):
+    """
+    Parse data from JSON to usable format, use recursion to parse all data, probably work with RAML v1.0, probably can
+    be optimised
+    :param parsed_page: dictionary contained parsed data for current page
+    :type: dict
+    :param page: dictionary contained data from JSON for current page
+    :type: dict
+    :param data: dictionary contained data from JSON
+    :type: dict
+    :return: none
+    """
     try:
         parsed_page['baseUri'] = page['baseUri']
         parsed_page['is_changeable'] = False
@@ -113,6 +124,14 @@ def parse(parsed_page, page, data):
 
 
 def fetch_parsed_data(path):
+    """
+    Start parser.js to parse data from RAML to JSON, fetch data from JSON file, use parse() to parse JSON file, return
+    parsed data
+    :param path: string contained full path to RAML file
+    :type: str
+    :return: dictionary contained parsed data and object contained response from parser.js
+    :rtype: dict, obj
+    """
     sensor = Popen(['node', 'modules/parser.js', path], stdout=PIPE)
     with open('modules/parsed.json', 'r') as json_file:
         data = json.load(json_file)
