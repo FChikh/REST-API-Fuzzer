@@ -9,7 +9,7 @@ domain = 'https://mc-w5vz-1306.msp.ru.corp.acronis.com'
 """
 :type: str
 
-BaseUri of service that fuzzer tests
+Domain of service that fuzzer tests
 """
 
 req_types = [random.randint(1, 10 ** 9), -random.randint(1, 10 ** 9),
