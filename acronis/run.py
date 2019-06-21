@@ -1,11 +1,21 @@
-from modules.py_parser import fetch_parsed_data
-from modules.fuzzer import fuzz
-import urllib3
+"""
+This module is a launcher of our fuzzer
+To run fuzzer, use 'python3 run.py' command
+"""
+
 import sys
 import time
+import urllib3
+from modules.py_parser import fetch_parsed_data
+from modules.fuzzer import fuzz
 
 
 def main():
+    """
+    Main function; providing user input from CLI.
+    User can specify path to RAML specs, ignored errors.
+    :return: None
+    """
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     start_time = time.time()
 
