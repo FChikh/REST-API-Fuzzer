@@ -8,8 +8,7 @@ import rstr
 import wfuzz
 import random
 import json
-import sys
-from modules.consts import types, domain, req_types
+from modules.consts import types, req_types
 
 
 def convert_cookies_format(cookies):
@@ -45,7 +44,7 @@ def convert_types(type_dict):
     return formatted_dict
 
 
-def authorize():
+def authorize(domain):
     """
     Make fuzzer authorized to service, so it can test it
     
@@ -85,7 +84,7 @@ def parse_params(params, fuzz=''):
                     else:
                         result.append(item['name'] + '=' + rstr.xeger(types[item['items']]))
                 continue
-            
+
             if item['type'] == 'object':
                 for key, value in item['properties'].items():
                     if type(types[value]) == dict:
@@ -124,8 +123,8 @@ def print_fuzz_data(page, specification, specification_codes, fuzz_sess, url, cu
             print(r)
 
 
-def fuzz_first_step(page, specification, specification_codes):
-    session = authorize()
+def fuzz_first_step(page, specification, specification_codes, domain):
+    session = authorize(domain)
     url = domain
 
     if not page['is_changeable']:
@@ -145,10 +144,10 @@ def fuzz_first_step(page, specification, specification_codes):
     print_fuzz_data(page, specification, specification_codes, fuzz_sess, url)
 
     for i in page['pages']:
-        fuzz_first_step(i, specification, specification_codes)
+        fuzz_first_step(i, specification, specification_codes, domain)
 
 
-def fuzz_second_step(page, specification, specification_codes):
+def fuzz_second_step(page, specification, specification_codes, domain):
     """
     Second stage of fuzzing: analysis and fuzzing of params
     :param page: dict with info about page from RAML: allowed methods, possible
@@ -162,7 +161,7 @@ def fuzz_second_step(page, specification, specification_codes):
     :type: list
     :return: None
     """
-    session = authorize()
+    session = authorize(domain)
 
     for method in page['methods']:
         print(method['method'])
@@ -186,7 +185,7 @@ def fuzz_second_step(page, specification, specification_codes):
                                               cookie=convert_cookies_format(session.cookies.get_dict()),
                                               method='GET').get_payload(req_types)
                 print_fuzz_data(page, specification, specification_codes, fuzz_sess, url, method['method'])
-                    
+
             uri = urllib.parse.quote(parse_params(params), safe='=&~._')
             url = domain + page['uri'].replace(page['uri'][page['uri'].index('{'): page['uri'].index('}') + 1],
                                                'FUZZ') + '?' + uri
@@ -194,7 +193,7 @@ def fuzz_second_step(page, specification, specification_codes):
                                           cookie=convert_cookies_format(session.cookies.get_dict()),
                                           method='GET').get_payload(req_types)
             print_fuzz_data(page, specification, specification_codes, fuzz_sess, url, method['method'])
-                
+
         elif method['method'] == 'post' and not page['is_changeable']:
             params_body = method['body']['properties']
             params_query = method['queryParameters']
@@ -207,7 +206,7 @@ def fuzz_second_step(page, specification, specification_codes):
                                               postdata=postdata,
                                               method='POST').get_payload(req_types)
                 print_fuzz_data(page, specification, specification_codes, fuzz_sess, url, method['method'], postdata)
-                    
+
             for item in params_body:
                 uri = urllib.parse.quote(parse_params(params_query),safe='=&~.')
                 url = domain + page['uri'] + '?' + uri
@@ -217,7 +216,7 @@ def fuzz_second_step(page, specification, specification_codes):
                                               postdata=postdata,
                                               method='POST').get_payload(req_types)
                 print_fuzz_data(page, specification, specification_codes, fuzz_sess, url, method['method'], postdata)
-                    
+
         elif method['method'] == 'post' and page['is_changeable']:
             params_body = method['body']['properties']
             params_query = method['queryParameters']
@@ -231,7 +230,7 @@ def fuzz_second_step(page, specification, specification_codes):
                                               postdata=postdata,
                                               method='POST').get_payload(req_types)
                 print_fuzz_data(page, specification, specification_codes, fuzz_sess, url, method['method'], postdata)
-                    
+
             for item in params_query:
                 uri = urllib.parse.quote(parse_params(params_query, item), safe='=&~.')
                 url = domain + page['uri'].replace(page['uri'][page['uri'].index('{'):page['uri'].index('}') + 1],
@@ -252,7 +251,7 @@ def fuzz_second_step(page, specification, specification_codes):
                                           postdata=postdata,
                                           method='POST').get_payload(req_types)
             print_fuzz_data(page, specification, specification_codes, fuzz_sess, url, method['method'], postdata)
-                
+
         elif method['method'] == 'put' and not page['is_changeable']:
             try:
                 params_body = method['body']['properties']
@@ -278,7 +277,7 @@ def fuzz_second_step(page, specification, specification_codes):
                                               postdata=postdata,
                                               method='PUT').get_payload(req_types)
                 print_fuzz_data(page, specification, specification_codes, fuzz_sess, url, method['method'], postdata)
-                    
+
         elif method['method'] == 'put' and page['is_changeable']:
             print('put')
             try:
@@ -296,7 +295,7 @@ def fuzz_second_step(page, specification, specification_codes):
                                               postdata=postdata,
                                               method='PUT').get_payload(req_types)
                 print_fuzz_data(page, specification, specification_codes, fuzz_sess, url, method['method'], postdata)
-                    
+
             for item in params_query:
                 uri = urllib.parse.quote(parse_params(params_query, item),safe='=&~.')
                 url = domain + page['uri'].replace(page['uri'][page['uri'].index('{'): page['uri'].index('}') + 1],
@@ -317,7 +316,7 @@ def fuzz_second_step(page, specification, specification_codes):
                                           postdata=postdata,
                                           method='PUT').get_payload(req_types)
             print_fuzz_data(page, specification, specification_codes, fuzz_sess, url, method['method'], postdata)
-                
+
         elif method['method'] == 'delete':
             url = domain + page['uri'].replace(page['relativeUri'], '/FUZZ')
             fuzz_sess = wfuzz.FuzzSession(url=url,
@@ -326,10 +325,10 @@ def fuzz_second_step(page, specification, specification_codes):
             print_fuzz_data(page, specification, specification_codes, fuzz_sess, url, method['method'])
         
         for item in page['pages']:
-            fuzz_second_step(item, specification, specification_codes)
+            fuzz_second_step(item, specification, specification_codes, domain)
 
 
-def fuzz(data, specification, specification_codes):
+def fuzz(data, specification, specification_codes, domain):
     """
     Launch two components of fuzzer
     
@@ -343,6 +342,6 @@ def fuzz(data, specification, specification_codes):
     :type: list
     :return: None
     """
-    fuzz_first_step(data, specification, specification_codes)
+    fuzz_first_step(data, specification, specification_codes, domain)
     for page in data['pages']:
-        fuzz_second_step(page, specification, specification_codes)
+        fuzz_second_step(page, specification, specification_codes, domain)
