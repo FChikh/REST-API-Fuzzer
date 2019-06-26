@@ -382,10 +382,11 @@ def fuzz(data, specification, specification_codes, domain):
     :type: list
     :return: none
     """
+    print(specification_codes)
     if specification == 'hc':
-        print('Not shown response codes: ', ', '.join(specification_codes))
+        print('Not shown response codes: ', ', '.join([str(i) for i in specification_codes])
     if specification == 'sc':
-        print('Shown response codes: ', ', '.join(specification_codes))
+        print('Shown response codes: ', ', '.join([str(i) for i in specification_codes])
     fuzz_first_step(data, specification, specification_codes, domain)
     for page in data['pages']:
         fuzz_second_step(page, specification, specification_codes, domain)
