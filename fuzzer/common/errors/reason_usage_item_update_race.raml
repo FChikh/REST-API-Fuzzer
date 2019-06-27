@@ -1,0 +1,25 @@
+#%RAML 1.0 Library
+
+uses:
+  error: !include ../schemas/error.raml
+
+types:
+  ReasonUsageItemUpdateRace:
+    description: 'Usage item update race'
+    type: error.error
+    properties:
+      domain:
+        type: string
+        enum:
+          - Licensing
+        required: true
+      reason:
+        type: string
+        enum:
+          - ReasonUsageItemUpdateRace
+        required: false
+      code:
+        type: string
+        enum:
+          - ReasonUsageItemUpdateRace
+        required: true

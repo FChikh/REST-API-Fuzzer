@@ -261,10 +261,13 @@ dmypy.json
 # Logging
 /log.txt
 
-# Acronis materials (hidden because of signed NDA)
-acronis/common
-acronis/libraries
-acronis/api.raml
-acronis/api1.raml
+.DS_Store
+
+# materials (hidden because of signed NDA)
+fuzzer/common/
+fuzzer/libraries/
+fuzzer/api.raml
+fuzzer/api1.raml
+fuzzer/log.txt
 
 # End of https://www.gitignore.io/api/python,pycharm+all,pycharm+iml

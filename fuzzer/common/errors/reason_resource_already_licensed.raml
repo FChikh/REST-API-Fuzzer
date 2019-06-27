@@ -1,0 +1,25 @@
+#%RAML 1.0 Library
+
+uses:
+  error: !include ../schemas/error.raml
+
+types:
+  ReasonResourceAlreadyLicensed:
+    description: 'Resource is already licensed'
+    type: error.error
+    properties:
+      domain:
+        type: string
+        enum:
+          - Licensing
+        required: true
+      reason:
+        type: string
+        enum:
+          - ReasonResourceAlreadyLicensed
+        required: false
+      code:
+        type: string
+        enum:
+          - ReasonResourceAlreadyLicensed
+        required: true

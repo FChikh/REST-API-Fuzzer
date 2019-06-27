@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "error": {
+      "description": "Base error object",
+      "type": "object",
+      "properties": {
+        "domain": {
+          "description": "Error type or category. Can be ['Licensing','Access'] or name of service (for example 'PolicyManager' or 'VaultManager')",
+          "type": "string"
+        },
+        "reason": {
+          "description": "Error id or code, unique in the domain. Same as in 'code' field",
+          "type": "string"
+        },
+        "code": {
+          "description": "Error id or code, unique in the domain. Same as in 'reason' field",
+          "type": "string"
+        },
+        "message":{
+          "description": "human-readable message, describing the error.",
+          "type": "string"
+        },
+        "context": {
+          "description": "Error context dictionary",
+          "type": "object"
+        },
+        "kb_link": {
+          "description": "Components for kblink",
+          "type": "object",
+          "properties": {
+            "line_tag": { "type": "string" },
+            "ser_code": { "type": "string" },
+            "version": { "type": "string" },
+            "build": { "type": "integer" },
+            "product": { "type": "string" },
+            "os": { "type": "string" }
+          }
+        },
+        "debug": {
+          "description": "Error debug information",
+          "type": "object"
+        }
+      },
+      "required": [
+        "domain",
+        "code"
+      ]
+    }
+  },
+  "type": "object",
+  "$ref": "#/definitions/error"
+}
