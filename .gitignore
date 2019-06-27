@@ -264,6 +264,7 @@ dmypy.json
 .DS_Store
 
 # materials (hidden because of signed NDA)
+
 fuzzer/common/
 fuzzer/libraries/
 fuzzer/api.raml
