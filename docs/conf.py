@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'Fuzzer'
+project = 'REST-API-Fuzzer'
 copyright = '2019, Egor Degterenko, Konstantin Korkin, Lubov Sadovskaya, Fedor Chikhachev'
 author = 'Egor Degterenko, Konstantin Korkin, Lubov Sadovskaya, Fedor Chikhachev'
 
