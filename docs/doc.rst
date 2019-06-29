@@ -182,3 +182,26 @@ run:
                   in fuzz, used to specify wfuzz
                 * specification_codes(list) - list of integers contained
                   status codes, used in fuzz, can be changed in fuzz"""
+
+------------------
+Cmd help
+------------------
+.. code-block:: none
+
+    usage: run.py [-h] [--hc [HC [HC ...]]] [--sc [SC [SC ...]]] --mode {1,2,12}
+                  path host
+
+    Process some information about what to test
+
+    positional arguments:
+      path                Path to main RAML specification of your REST API
+      host                Address of testing server, with protocol
+
+    optional arguments:
+      -h, --help          show this help message and exit
+      --hc [HC [HC ...]]  Response codes to be hidden, if nothing classified -
+                          would be taken from RAML doc
+      --sc [SC [SC ...]]  Response codes to be shown, if nothing classified -
+                          would be taken from RAML doc
+      --mode {1,2,12}     Choose beetween modes: 1 - random routing, 2 - fuzzing
+                          of parameters, 12 - both
