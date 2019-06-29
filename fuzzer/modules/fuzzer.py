@@ -372,7 +372,7 @@ def fuzz_second_step(page, specification, specification_codes, domain):
             fuzz_second_step(item, specification, specification_codes, domain)
 
 
-def fuzz(data, specification, specification_codes, domain):
+def fuzz(data, specification, specification_codes, domain, mode):
     """
     Run fuzz_first_step() and fuzz_second_step() to fuzz server
 
@@ -386,11 +386,10 @@ def fuzz(data, specification, specification_codes, domain):
     :type: list
     :return: none
     """
-    print(specification_codes)
-    if specification == 'hc':
-        print('Not shown response codes: ', ', '.join([str(i) for i in specification_codes]))
-    if specification == 'sc':
-        print('Shown response codes: ', ', '.join([str(i) for i in specification_codes]))
-    fuzz_first_step(data, specification, specification_codes, domain)
-    for page in data['pages']:
-        fuzz_second_step(page, specification, specification_codes, domain)
+    if '1' in mode:
+        print('First step of fuzzing')
+        fuzz_first_step(data, specification, specification_codes, domain)
+    if '2' in mode:
+        print('Second step of fuzzing')
+        for page in data['pages']:
+            fuzz_second_step(page, specification, specification_codes, domain)
