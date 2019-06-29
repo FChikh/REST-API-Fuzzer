@@ -1,6 +1,6 @@
 # REST-API-Fuzzer
 
-This is the prototype of intelligent fuzzer for services, written with REST API rules, which was created during the Summer school internship in Acronis. Authors: Fedor Chikhachev, Egor Degterenko, Konstantin Korkin, Lubov Sadovskaya (Moscow State Public School №444 students)
+This is the prototype of intelligent fuzzer for services, written with REST API rules, which was created during the Summer school internship. Authors: Fedor Chikhachev, Egor Degterenko, Konstantin Korkin, Lubov Sadovskaya (Moscow State Public School №444 students)
 
 ## How it works:
 * It analyzes RAML specification for your REST API
