@@ -8,11 +8,26 @@ This is the prototype of intelligent fuzzer for services, written with REST API 
 based on what it found in your RAML specification. 
 
 ## Usage
-* Start the main script: `python3 run.py`
-* Then you should specify absolute path to your RAML specification and address (domain name) of server, where your service is working.
-* You can also specify which response codes should be shown or shouldn't. Also you can filter response codes, that are given as possible responses in your RAML specs.
-* Results of fuzzing session could be found in log.txt file
+```
+usage: python3 run.py [-h] [--hc [HC [HC ...]]] [--sc [SC [SC ...]]] --mode {1,2,12}
+              path host
 
+Process some information about what to test
+
+positional arguments:
+  path                Path to main RAML specification of your REST API
+  host                Address of testing server, with protocol
+
+optional arguments:
+  -h, --help          show this help message and exit
+  --hc [HC [HC ...]]  Response codes to be hidden, if nothing classified -
+                      would be taken from RAML doc
+  --sc [SC [SC ...]]  Response codes to be shown, if nothing classified -
+                      would be taken from RAML doc
+  --mode {1,2,12}     Choose beetween modes: 1 - random routing, 2 - fuzzing
+                      of parameters, 12 - both
+
+```
 
 ### Check this out!
 
