@@ -37,8 +37,8 @@ def main():
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     start_time = time.time()
-
-    file = open('log.txt', 'w')
+    current_time = time.ctime().replace(' ', '_')
+    file = open('log' + current_time + '.txt', 'w')
     console_stdout = sys.stdout
 
     print('Starting...')
@@ -75,7 +75,7 @@ def main():
     sys.stdout = file
     fuzz(data, specification, specification_codes, args.host, args.mode)
     sys.stdout = console_stdout
-    print('Done! Check out log.txt file')
+    print('Done! Check out log' + current_time + '.txt file')
     print("--- %s seconds ---" % (time.time() - start_time))
 
 
