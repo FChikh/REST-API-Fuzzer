@@ -270,5 +270,7 @@ fuzzer/libraries/
 fuzzer/api.raml
 fuzzer/api1.raml
 fuzzer/log.txt
+fuzzer/parsed.json
+/parsed.json
 
 # End of https://www.gitignore.io/api/python,pycharm+all,pycharm+iml
